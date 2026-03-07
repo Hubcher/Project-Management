@@ -1,1 +1,1 @@
-Project-Managment
+Project-Management
