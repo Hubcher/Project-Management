@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package report;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/Hubcher/project-management/contracts/gen/reportpb";
+
+service ReportService {
+  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}

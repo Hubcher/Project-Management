@@ -14,11 +14,11 @@ type HTTPConfig struct {
 type Config struct {
 	LogLevel       string     `yaml:"log_level" env:"LOG_LEVEL" env-default:"DEBUG"`
 	HTTPConfig     HTTPConfig `yaml:"api-server"`
-	ProjectAddress string     `json:"project_address" env:"PROJECT_ADDRESS" env-default:"localhost:81"`
+	ProjectAddress string     `yaml:"project_address" env:"PROJECT_ADDRESS" env-default:"localhost:82"`
 }
 
-func Mustload(configPath string) *Config {
-	var config *Config
+func MustLoad(configPath string) Config {
+	var config Config
 
 	if err := cleanenv.ReadConfig(configPath, &config); err != nil {
 		log.Fatalf("Error loading config: %s", err)

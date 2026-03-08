@@ -1,11 +1,18 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
+	"github.com/Hubcher/project-management/gateway/internal/adapters/grpc/project"
+	"github.com/Hubcher/project-management/gateway/internal/adapters/rest"
+	"github.com/Hubcher/project-management/gateway/internal/config"
+	"github.com/Hubcher/project-management/gateway/internal/core"
 	"log/slog"
 	"net/http"
 	"os"
-	"project-managment/gateway/config"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -16,7 +23,7 @@ func main() {
 
 func run() error {
 	var configPath string
-	flag.StringVar(&configPath, "config", "config.yaml", "server configuration file")
+	flag.StringVar(&configPath, "config", "configs/config.yaml", "server configuration file")
 	flag.Parse()
 
 	cfg := config.MustLoad(configPath)
@@ -25,10 +32,49 @@ func run() error {
 	log.Info("starting gateway service")
 	log.Debug("debug messages are enabled")
 
-	// Инициализируем мультиплексер
+	// gRPC clients
+	projectClient, err := project.NewClient(cfg.ProjectAddress, log)
+	if err != nil {
+		log.Error("cannot init ProjectService adapter", "error", err)
+		return err
+	}
+	defer func() {
+		if err = projectClient.Close(); err != nil {
+			log.Error("cannot close ProjectService adapter", "error", err)
+		}
+	}()
+
 	mux := http.NewServeMux()
 
-	// project-service CRUD
+	// ProjectService endpoints
+
+	// Ping: ProjectService + AuthService + ExportService + UserService + ReportService
+	mux.Handle("GET /api/ping", rest.NewPingHandler(log, map[string]core.Pinger{
+		"project": projectClient,
+	}))
+
+	server := &http.Server{
+		Addr:        cfg.HTTPConfig.Address,
+		ReadTimeout: cfg.HTTPConfig.Timeout,
+		Handler:     mux,
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		<-ctx.Done()
+		log.Debug("shutting down server")
+		if err = server.Shutdown(context.Background()); err != nil {
+			log.Error("erroneous shutdown", "error", err)
+		}
+	}()
+
+	log.Info("Running HTTP server", "address", cfg.HTTPConfig.Address)
+	if err = server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Error("server closed unexpectedly", "error", err)
+		return err
+	}
 
 	return nil
 }

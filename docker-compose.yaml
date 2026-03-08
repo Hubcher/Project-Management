@@ -1,0 +1,32 @@
+services:
+
+
+  gateway:
+    image: api:latest
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: api
+    restart: unless-stopped
+    ports:
+      - 28080:8080
+    volumes:
+      - ./gateway/configs:/app/configs:ro
+    environment:
+      - PROJECT_ADDRESS=project-service:8080
+    depends_on:
+      - project-service
+
+  project-service:
+    image: project:latest
+    build:
+      context: .
+      dockerfile: project-service/Dockerfile
+    container_name: project-service
+    restart: unless-stopped
+    ports:
+      - 28082:8080
+    volumes:
+      - ./project-service/configs:/app/configs:ro
+    environment:
+      - PROJECT_ADDRESS=:8080

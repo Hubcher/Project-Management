@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"project-managment/gateway/internal/core"
+
+	"github.com/Hubcher/project-management/gateway/internal/core"
 )
 
 type PingResponse struct {

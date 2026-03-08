@@ -3,10 +3,19 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+
+	projectpb "github.com/Hubcher/project-management/contracts/gen/proto/project"
+	projectgrpc "github.com/Hubcher/project-management/project-service/internal/adapters/grpc"
+	"github.com/Hubcher/project-management/project-service/internal/config"
+	"github.com/Hubcher/project-management/project-service/internal/core"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
 	"log/slog"
+	"net"
 	"os"
 	"os/signal"
-	"project-managment/project-service/internal/config"
 	"syscall"
 )
 
@@ -18,7 +27,7 @@ func main() {
 
 func run() error {
 	var configPath string
-	flag.StringVar(&configPath, "config", "config.yaml", "server configuration file")
+	flag.StringVar(&configPath, "config", "configs/config.yaml", "server configuration file")
 	flag.Parse()
 
 	cfg := config.MustLoad(configPath)
@@ -27,13 +36,29 @@ func run() error {
 	log.Info("starting project-service server")
 	log.Debug("debug message are enabled")
 
+	projectService := core.NewService(log)
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+
+	// gRPC server
+	listener, err := net.Listen("tcp", cfg.Address)
+	if err != nil {
+		return fmt.Errorf("failed to listen: %v", err)
+	}
+
+	s := grpc.NewServer()
+	projectpb.RegisterProjectServiceServer(s, projectgrpc.NewServer(projectService))
+	reflection.Register(s)
 
 	go func() {
 		<-ctx.Done()
 		log.Info("Gracefully shutting down project-service server")
 	}()
+
+	if err = s.Serve(listener); err != nil {
+		return fmt.Errorf("failed to serve: %v", err)
+	}
 
 	return nil
 }

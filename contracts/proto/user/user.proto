@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package project;
+package user;
 
 import "google/protobuf/empty.proto";
 
-option go_package = "project-management/proto/gen/projectpb";
+option go_package = "github.com/Hubcher/project-management/contracts/gen/userpb";
 
-service ProjectService {
+service UserService {
   rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
