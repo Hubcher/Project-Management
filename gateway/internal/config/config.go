@@ -14,6 +14,7 @@ type HTTPConfig struct {
 type Config struct {
 	LogLevel       string     `yaml:"log_level" env:"LOG_LEVEL" env-default:"DEBUG"`
 	HTTPConfig     HTTPConfig `yaml:"api-server"`
+	UserAddress    string     `yaml:"user_address" env:"USER_ADDRESS" env-default:"localhost:81"`
 	ProjectAddress string     `yaml:"project_address" env:"PROJECT_ADDRESS" env-default:"localhost:82"`
 }
 

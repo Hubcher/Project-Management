@@ -1,6 +1,6 @@
 package core
 
-type ProjectRepo interface {
+type DB interface {
 	//CreateProject(ctx context.Context, dto NewProjectDto) (*Project, error)
 	//
 	//GetAllProjects(ctx context.Context) ([]Project, error)

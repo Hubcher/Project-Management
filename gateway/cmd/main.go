@@ -10,9 +10,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	grpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/project"
+	projectgrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/project"
+	usergrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/user"
 	"github.com/Hubcher/project-management/gateway/internal/adapters/rest/ping"
 	projectrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/project"
+	userrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/user"
 	"github.com/Hubcher/project-management/gateway/internal/config"
 	"github.com/Hubcher/project-management/gateway/internal/core"
 )
@@ -35,7 +37,7 @@ func run() error {
 	log.Debug("debug messages are enabled")
 
 	// gRPC clients
-	projectClient, err := grpc.NewClient(cfg.ProjectAddress, log)
+	projectClient, err := projectgrpc.NewClient(cfg.ProjectAddress, log)
 	if err != nil {
 		log.Error("cannot init ProjectService adapter", "error", err)
 		return err
@@ -46,10 +48,28 @@ func run() error {
 		}
 	}()
 
+	userClient, err := usergrpc.NewClient(cfg.UserAddress, log)
+	if err != nil {
+		log.Error("cannot init UserService adapter", "error", err)
+		return err
+	}
+	defer func() {
+		if err = userClient.Close(); err != nil {
+			log.Error("cannot close UserService adapter", "error", err)
+		}
+	}()
+
 	mux := http.NewServeMux()
 
+	// UserService endpoints
+	// TODO: administrator-only middleware
+	mux.Handle("POST /api/users", userrest.NewCreateUserHandler(log, userClient))
+	mux.Handle("GET /api/users/{id}", userrest.NewGetUserHandler(log, userClient))
+	mux.Handle("GET /api/users", userrest.NewListUsersHandler(log, userClient))
+	mux.Handle("PUT /api/users/{id}", userrest.NewUpdateUserHandler(log, userClient))
+	mux.Handle("DELETE /api/users/{id}", userrest.NewDeleteUserHandler(log, userClient))
+
 	// ProjectService endpoints
-	//TODO: Как будто ошибка передавать номер контракта, а не id проекта
 	mux.Handle("POST /api/projects", projectrest.NewCreateProjectHandler(log, projectClient))
 	mux.Handle("GET /api/projects/{contractNumber}", projectrest.NewGetHandler(log, projectClient))
 	mux.Handle("GET /api/projects", projectrest.NewListHandler(log, projectClient))
@@ -59,6 +79,7 @@ func run() error {
 	// Ping: ProjectService + AuthService + ExportService + UserService + ReportService
 	mux.Handle("GET /api/ping", ping.NewPingHandler(log, map[string]core.Pinger{
 		"project": projectClient,
+		"user":    userClient,
 	}))
 
 	server := &http.Server{
