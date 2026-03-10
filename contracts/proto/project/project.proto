@@ -6,6 +6,62 @@ import "google/protobuf/empty.proto";
 
 option go_package = "github.com/Hubcher/project-management/contracts/gen/projectpb";
 
+
+// RPC
 service ProjectService {
+  // PING
   rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // CRUD
+  rpc CreateProject(CreateProjectRequest) returns (Project) {}
+  rpc GetProject(GetProjectRequest) returns (Project) {}
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse) {}
+  rpc UpdateProject(UpdateProjectRequest) returns (Project) {}
+  rpc DeleteProject(DeleteProjectRequest) returns (google.protobuf.Empty) {}
+
+}
+
+// Models
+message Project {
+  int32 contract_number = 1;
+  string name = 2;
+  string start_date = 3; // YYYY-MM-DD
+  string deadline = 4; // YYYY-MM-DD
+  string price = 5;    // string, потому что теряется точность numeric
+  string user_id = 6; // UUID как строка
+  string created_at = 7;
+}
+
+// Request/Response
+message CreateProjectRequest {
+  string name = 1;
+  string start_date = 2;
+  string deadline = 3;
+  string price = 4;
+  string user_id = 5;
+}
+
+message GetProjectRequest {
+  int32 contract_number = 1;
+}
+
+message ListProjectsRequest {
+  string user_id = 1;
+}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+}
+
+message UpdateProjectRequest {
+  int32 contract_number = 1;
+  string name = 2;
+  string start_date = 3;
+  string deadline = 4;
+  string price = 5;
+  string user_id = 6;
+}
+
+message DeleteProjectRequest {
+  int32 contract_number = 1;
 }

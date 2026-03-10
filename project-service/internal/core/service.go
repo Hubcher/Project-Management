@@ -2,18 +2,20 @@ package core
 
 import (
 	"log/slog"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type Service struct {
 	log *slog.Logger
-	//db  DB
+	db  DB
 }
 
 // добавить DB в аргуементы
-func NewService(log *slog.Logger) *Service {
+func NewService(log *slog.Logger, storage sqlx.DB) *Service {
 	return &Service{
 		log: log,
-		//db:  db,
+		db:  db,
 	}
 }
 

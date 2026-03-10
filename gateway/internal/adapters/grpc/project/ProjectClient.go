@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -46,6 +47,75 @@ func NewClient(address string, log *slog.Logger) (*Client, error) {
 func (c *Client) Ping(ctx context.Context) error {
 	_, err := c.client.Ping(ctx, &emptypb.Empty{})
 	return err
+}
+
+func (c *Client) CreateProject(ctx context.Context, req *projectpb.CreateProjectRequest) (*projectpb.Project, error) {
+	if req == nil {
+		return nil, errors.New("CreateProjectRequest cannot be nil")
+	}
+
+	resp, err := c.client.CreateProject(ctx, &projectpb.CreateProjectRequest{})
+	if err != nil {
+		c.log.Error("CreateProject failed", "error", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *Client) GetProject(ctx context.Context, req *projectpb.GetProjectRequest) (*projectpb.Project, error) {
+	if req == nil {
+		return nil, errors.New("get project request is nil")
+	}
+
+	resp, err := c.client.GetProject(ctx, req)
+	if err != nil {
+		c.log.Error("GetProject failed", "error", err)
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (c *Client) ListProject(ctx context.Context, req *projectpb.ListProjectsRequest) (*projectpb.ListProjectsResponse, error) {
+	if req == nil {
+		return nil, errors.New("list projects request is nil")
+	}
+
+	resp, err := c.client.ListProjects(ctx, req)
+	if err != nil {
+		c.log.Error("ListProjects failed", "error", err)
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (c *Client) UpdateProject(ctx context.Context, req *projectpb.UpdateProjectRequest) (*projectpb.Project, error) {
+	if req == nil {
+		return nil, errors.New("update project request is nil")
+	}
+
+	resp, err := c.client.UpdateProject(ctx, req)
+	if err != nil {
+		c.log.Error("UpdateProject failed", "error", err)
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (c *Client) DeleteProject(ctx context.Context, req *projectpb.DeleteProjectRequest) (*emptypb.Empty, error) {
+	if req == nil {
+		return nil, errors.New("delete project request is nil")
+	}
+
+	resp, err := c.client.DeleteProject(ctx, req)
+	if err != nil {
+		c.log.Error("DeleteProject failed", "error", err)
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 func (c *Client) Close() error {

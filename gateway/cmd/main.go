@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"github.com/Hubcher/project-management/gateway/internal/adapters/grpc/project"
-	"github.com/Hubcher/project-management/gateway/internal/adapters/rest"
-	"github.com/Hubcher/project-management/gateway/internal/config"
-	"github.com/Hubcher/project-management/gateway/internal/core"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	grpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/project"
+	"github.com/Hubcher/project-management/gateway/internal/adapters/rest/ping"
+	projectrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/project"
+	"github.com/Hubcher/project-management/gateway/internal/config"
+	"github.com/Hubcher/project-management/gateway/internal/core"
 )
 
 func main() {
@@ -33,7 +35,7 @@ func run() error {
 	log.Debug("debug messages are enabled")
 
 	// gRPC clients
-	projectClient, err := project.NewClient(cfg.ProjectAddress, log)
+	projectClient, err := grpc.NewClient(cfg.ProjectAddress, log)
 	if err != nil {
 		log.Error("cannot init ProjectService adapter", "error", err)
 		return err
@@ -47,9 +49,15 @@ func run() error {
 	mux := http.NewServeMux()
 
 	// ProjectService endpoints
+	//TODO: Как будто ошибка передавать номер контракта, а не id проекта
+	mux.Handle("POST /api/projects", projectrest.NewCreateProjectHandler(log, projectClient))
+	mux.Handle("GET /api/projects/{contractNumber}", projectrest.NewGetHandler(log, projectClient))
+	mux.Handle("GET /api/projects", projectrest.NewListHandler(log, projectClient))
+	mux.Handle("PUT /api/projects/{contractNumber}", projectrest.NewUpdateHandler(log, projectClient))
+	mux.Handle("DELETE /api/projects/{contractNumber}", projectrest.NewDeleteHandler(log, projectClient))
 
 	// Ping: ProjectService + AuthService + ExportService + UserService + ReportService
-	mux.Handle("GET /api/ping", rest.NewPingHandler(log, map[string]core.Pinger{
+	mux.Handle("GET /api/ping", ping.NewPingHandler(log, map[string]core.Pinger{
 		"project": projectClient,
 	}))
 

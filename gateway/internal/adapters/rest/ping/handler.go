@@ -1,4 +1,4 @@
-package rest
+package ping
 
 import (
 	"encoding/json"

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	projectpb "github.com/Hubcher/project-management/contracts/gen/proto/project"
+	"github.com/Hubcher/project-management/project-service/internal/adapters/db/postgres"
 	projectgrpc "github.com/Hubcher/project-management/project-service/internal/adapters/grpc"
 	"github.com/Hubcher/project-management/project-service/internal/config"
 	"github.com/Hubcher/project-management/project-service/internal/core"
@@ -36,10 +37,19 @@ func run() error {
 	log.Info("starting project-service server")
 	log.Debug("debug message are enabled")
 
-	projectService := core.NewService(log)
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+
+	// database postgres adapter
+	storage, err := postgres.New(log, cfg.DBAddress)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %v", err)
+	}
+	if err = storage.Migrate(); err != nil {
+		return fmt.Errorf("failed to migrate database: %v", err)
+	}
+
+	projectService := core.NewService(log, storage)
 
 	// gRPC server
 	listener, err := net.Listen("tcp", cfg.Address)
