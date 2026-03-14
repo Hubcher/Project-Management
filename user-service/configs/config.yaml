@@ -1,2 +1,3 @@
 log_level: DEBUG
-project_address: localhost:81
+address: :8080
+db_address: postgres://postgres:password@user-postgres:5432/userdb?sslmode=disable

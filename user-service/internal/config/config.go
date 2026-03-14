@@ -7,9 +7,9 @@ import (
 )
 
 type Config struct {
-	LogLevel  string `yaml:"logLevel" env:"LOG_LEVEL" env-default:"debug"`
-	Address   string `yaml:"address" env:"USER_ADDRESS" env-default:"localhost:80"`
-	DBAddress string `yaml:"db_address" env:"DB_ADDRESS" env-default:"localhost:82"`
+	LogLevel  string `yaml:"log_level" env:"LOG_LEVEL" env-default:"DEBUG"`
+	Address   string `yaml:"address" env:"USER_ADDRESS" env-default:":8080"`
+	DBAddress string `yaml:"db_address" env:"DB_ADDRESS" env-default:"postgres://postgres:password@user-postgres:5432/userdb?sslmode=disable"`
 }
 
 func MustLoad(configPath string) Config {

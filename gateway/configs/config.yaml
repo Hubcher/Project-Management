@@ -1,5 +1,6 @@
 log_level: DEBUG
-project_address: localhost:82
+user_address: user-service:8080
+project_address: project-service:8080
 api-server:
-  address: localhost:80
+  address: :8080
   timeout: 5s

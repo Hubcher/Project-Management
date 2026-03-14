@@ -2,6 +2,7 @@ package core
 
 import "errors"
 
-var ErrBadArguments = errors.New("arguments are not acceptable")
-var ErrAlreadyExists = errors.New("project already exists")
-var ErrNotFound = errors.New("project is not found")
+var (
+	ErrProjectNotFound = errors.New("project not found")
+	ErrInvalidProject  = errors.New("invalid project")
+)

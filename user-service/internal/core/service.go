@@ -22,7 +22,7 @@ func NewService(log *slog.Logger, db DB) *Service {
 }
 
 func (s *Service) CreateUser(ctx context.Context, input CreateUserInput) (*User, error) {
-	if err := validateUserInput(input.ID, input.Name, input.Password, input.Email, input.Role); err != nil {
+	if err := validateUserInput(input.ID, input.Name, input.Email, input.Password, input.Role); err != nil {
 		return nil, err
 	}
 
@@ -53,7 +53,7 @@ func (s *Service) ListUsers(ctx context.Context, role string) ([]User, error) {
 }
 
 func (s *Service) UpdateUser(ctx context.Context, input UpdateUserInput) (*User, error) {
-	if err := validateUserInput(input.ID, input.Name, input.Password, input.Email, input.Role); err != nil {
+	if err := validateUserInput(input.ID, input.Name, input.Email, input.Password, input.Role); err != nil {
 		return nil, err
 	}
 

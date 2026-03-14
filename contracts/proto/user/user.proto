@@ -12,7 +12,7 @@ service UserService {
 
   //CRUD rpc
   rpc CreateUser(CreateUserRequest) returns (User) {}
-  rpc GetUser(GetUserRequest) returns (User) {}
+  rpc GetUserById(GetUserByIdRequest) returns (User) {}
   rpc GetUserByEmail(GetUserByEmailRequest) returns (UserWithPassword) {}
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
   rpc UpdateUser(UpdateUserRequest) returns (User) {}
@@ -35,7 +35,7 @@ message CreateUserRequest {
   string role = 5;
 }
 
-message GetUserRequest {
+message GetUserByIdRequest {
   string id = 1;
 }
 

@@ -1,19 +1,30 @@
 package core
 
+import "time"
+
 type Project struct {
-	Id             int
+	ContractNumber int64
 	Name           string
-	StartDate      string
-	Deadline       string
+	StartDate      time.Time
+	Deadline       time.Time
 	Price          string
-	CreatedAt      string
-	ContractNumber int
+	UserID         string
+	CreatedAt      time.Time
 }
 
-type NewProjectDto struct {
+type CreateProjectInput struct {
+	Name      string
+	StartDate time.Time
+	Deadline  time.Time
+	Price     string
+	UserID    string
+}
+
+type UpdateProjectInput struct {
+	ContractNumber int64
 	Name           string
-	StartDate      string
-	Deadline       string
+	StartDate      time.Time
+	Deadline       time.Time
 	Price          string
-	ContractNumber int
+	UserID         string
 }

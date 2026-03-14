@@ -18,7 +18,7 @@ import (
 type UserService interface {
 	CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.User, error)
 	GetUser(ctx context.Context, req *userpb.GetUserRequest) (*userpb.User, error)
-	ListUsers(ctx context.Context, req *userpb.ListUsersRequest) (*ListUsersResponse, error)
+	ListUsers(ctx context.Context, req *userpb.ListUsersRequest) (*userpb.ListUsersResponse, error)
 	UpdateUser(ctx context.Context, req *userpb.UpdateUserRequest) (*userpb.User, error)
 	DeleteUser(ctx context.Context, req *userpb.DeleteUserRequest) (*emptypb.Empty, error)
 }
@@ -41,7 +41,7 @@ func NewCreateUserHandler(log *slog.Logger, service UserService) http.HandlerFun
 	}
 }
 
-func NewGetUserHandler(log *slog.Logger, service UserService) http.HandlerFunc {
+func NewGetUserByIdHandler(log *slog.Logger, service UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := extractUserID(r)
 		if err != nil {

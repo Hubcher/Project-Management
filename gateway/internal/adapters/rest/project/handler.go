@@ -1,39 +1,33 @@
 package project
 
-import (
-	"log/slog"
-	"net/http"
-
-	"github.com/Hubcher/project-management/gateway/internal/core"
-)
-
-// Handlers
-func NewCreateProjectHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-	}
-}
-
-func NewGetHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-	}
-}
-
-func NewListHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-	}
-}
-
-func NewUpdateHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-	}
-}
-
-func NewDeleteHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-	}
-}
+//
+//// Handlers
+//func NewCreateProjectHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//
+//	}
+//}
+//
+//func NewGetHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//
+//	}
+//}
+//
+//func NewListHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//
+//	}
+//}
+//
+//func NewUpdateHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//
+//	}
+//}
+//
+//func NewDeleteHandler(log *slog.Logger, client core.ProjectService) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//
+//	}
+//}

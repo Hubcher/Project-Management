@@ -8,8 +8,8 @@ import (
 
 type Config struct {
 	LogLevel  string `yaml:"log_level" env:"LOG_LEVEL" env-default:"debug"`
-	Address   string `yaml:"project_address" env:"PROJECT_ADDRESS" env-default:"localhost:80"`
-	DBAddress string `yaml:"db_address" env:"DB_ADDRESS" env-default:"localhost:82"`
+	Address   string `yaml:"address" env:"PROJECT_ADDRESS" env-default:":8080"`
+	DBAddress string `yaml:"db_address" env:"DB_ADDRESS" env-default:"postgres://postgres:password@project-postgres:5432/projectpb?sslmode=disable"`
 }
 
 func MustLoad(configPath string) Config {

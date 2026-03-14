@@ -10,10 +10,10 @@ import (
 
 type Server struct {
 	projectpb.UnimplementedProjectServiceServer
-	service core.ProjectRepo
+	service core.ProjectService
 }
 
-func NewServer(service core.ProjectRepo) *Server {
+func NewServer(service core.ProjectService) *Server {
 	return &Server{service: service}
 }
 

@@ -3,7 +3,7 @@ create table if not exists users (
     name text not null,
     email text not null unique,
     password text not null,
-    role text not null check (role in (`admin`, `user`)) default `user`,
+    role text not null check (role in ('admin', 'user')) default 'user',
     created_at timestamp not null default CURRENT_TIMESTAMP
 
 );
