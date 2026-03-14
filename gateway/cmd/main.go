@@ -65,7 +65,7 @@ func run() error {
 	// userService endpoints
 	mux.Handle("POST /api/users", userrest.NewCreateUserHandler(log, userClient))
 	mux.Handle("GET /api/users/{id}", userrest.NewGetUserByIdHandler(log, userClient))
-	mux.Handle("GET /api/users/{email}", userrest.NewGetUserByEmailHandler(log, userClient))
+	//mux.Handle("GET /api/users/{email}", userrest.NewGetUserByEmailHandler(log, userClient))
 	mux.Handle("GET /api/users", userrest.NewListUsersHandler(log, userClient))
 	mux.Handle("PUT /api/users/{id}", userrest.NewUpdateUserHandler(log, userClient))
 	mux.Handle("DELETE /api/users/{id}", userrest.NewDeleteUserHandler(log, userClient))

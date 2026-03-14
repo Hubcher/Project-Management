@@ -8,4 +8,35 @@ option go_package = "github.com/Hubcher/project-management/contracts/gen/authpb"
 
 service AuthService {
   rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  rpc Login (LoginRequest) returns (LoginResponse) {}
+  rpc IsAdmin (IsAdminRequest) returns (IsAdminResponse) {}
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  string user_id = 1;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+  int32 app_id = 3;
+}
+
+message LoginResponse {
+  string token = 1;
+}
+
+message IsAdminRequest {
+  string user_id = 1;
+}
+
+message IsAdminResponse {
+  bool is_admin = 1;
 }
