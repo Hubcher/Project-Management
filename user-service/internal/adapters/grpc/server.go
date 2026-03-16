@@ -40,7 +40,7 @@ func (s *Server) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) 
 	return toProtoUser(user), nil
 }
 
-func (s *Server) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*userpb.User, error) {
+func (s *Server) GetUser(ctx context.Context, req *userpb.GetUserByIdRequest) (*userpb.User, error) {
 	user, err := s.service.GetUser(ctx, req.GetId())
 	if err != nil {
 		return nil, mapCoreError(err)

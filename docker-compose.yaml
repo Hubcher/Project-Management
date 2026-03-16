@@ -38,6 +38,24 @@ services:
       user-postgres:
         condition: service_healthy
 
+  auth-service:
+    image: auth:latest
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "28081:8080"
+    volumes:
+      - ./auth-service/configs:/app/configs:ro
+    environment:
+      USER_ADDRESS: ":8080"
+      DB_ADDRESS: "postgres://postgres:password@auth-postgres:5432/authdb?sslmode=disable"
+    depends_on:
+      user-postgres:
+        condition: service_healthy
+
 #  project-service:
 #    image: project:latest
 #    build:
@@ -94,6 +112,25 @@ services:
       retries: 5
       start_period: 20s
 
+  auth-postgres:
+    image: postgres:16-alpine
+    container_name: auth-postgres
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: projectdb
+    volumes:
+      - auth-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d authdb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4
@@ -109,8 +146,10 @@ services:
     depends_on:
       - user-postgres
       - project-postgres
+      - auth-postgres
 
 volumes:
   user-postgres-data:
   project-postgres-data:
+  auth-postgres-data:
   pgadmin:

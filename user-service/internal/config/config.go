@@ -12,11 +12,11 @@ type Config struct {
 	DBAddress string `yaml:"db_address" env:"DB_ADDRESS" env-default:"postgres://postgres:password@user-postgres:5432/userdb?sslmode=disable"`
 }
 
-func MustLoad(configPath string) Config {
+func MustLoad(configPath string) *Config {
 	var config Config
 
 	if err := cleanenv.ReadConfig(configPath, &config); err != nil {
 		log.Fatalf("cannot read config %q: %s", configPath, err)
 	}
-	return config
+	return &config
 }

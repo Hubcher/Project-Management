@@ -35,7 +35,7 @@ func run() error {
 	log := mustMakeLogger(cfg.LogLevel)
 
 	log.Info("starting project-service server")
-	log.Debug("debug message are enabled")
+	log.Debug("debug message are enabled", slog.Any("cfg", cfg))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -89,6 +89,6 @@ func mustMakeLogger(logLevel string) *slog.Logger {
 		panic("unknown log level: " + logLevel)
 	}
 
-	handler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level})
 	return slog.New(handler)
 }

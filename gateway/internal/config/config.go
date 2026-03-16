@@ -19,12 +19,12 @@ type Config struct {
 	ProjectAddress string     `yaml:"project_address" env:"PROJECT_ADDRESS" env-default:"project-service:8080"`
 }
 
-func MustLoad(configPath string) Config {
+func MustLoad(configPath string) *Config {
 	var config Config
 
 	if err := cleanenv.ReadConfig(configPath, &config); err != nil {
 		log.Fatalf("Error loading config: %s", err)
 	}
 
-	return config
+	return &config
 }

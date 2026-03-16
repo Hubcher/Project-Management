@@ -1,0 +1,5 @@
+log_level: DEBUG
+address: :8080
+token_ttl: 1h
+db_address: postgres://postgres:password@auth-postgres:5432/userdb?sslmode=disable
+env: local
