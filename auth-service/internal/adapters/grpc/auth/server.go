@@ -42,7 +42,7 @@ func (s *Server) Login(ctx context.Context, req *authpb.LoginRequest) (*authpb.L
 
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int(req.GetAppId()))
 	if err != nil {
-		// TODO: ...
+		
 		return nil, status.Error(codes.InvalidArgument, "internal error")
 	}
 

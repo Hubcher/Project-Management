@@ -12,11 +12,17 @@ type HTTPConfig struct {
 	Timeout time.Duration `yaml:"timeout" env:"API_TIMEOUT" env-default:"5s"`
 }
 
+type JWTConfig struct {
+	Issuer string `yaml:"issuer" env:"JWT_ISSUER" env-default:"auth-service"`
+	Secret string `yaml:"secret" env:"JWT_SECRET" env-required:"true"`
+}
+
 type Config struct {
 	LogLevel       string     `yaml:"log_level" env:"LOG_LEVEL" env-default:"DEBUG"`
 	HTTPConfig     HTTPConfig `yaml:"api-server"`
 	UserAddress    string     `yaml:"user_address" env:"USER_ADDRESS" env-default:"user-service:8080"`
 	ProjectAddress string     `yaml:"project_address" env:"PROJECT_ADDRESS" env-default:"project-service:8080"`
+	JWT            JWTConfig  `yaml:"jwt"`
 }
 
 func MustLoad(configPath string) *Config {

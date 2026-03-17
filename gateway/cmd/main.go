@@ -14,6 +14,7 @@ import (
 	//projectgrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/project"
 
 	usergrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/user"
+	"github.com/Hubcher/project-management/gateway/internal/adapters/rest/middleware"
 	"github.com/Hubcher/project-management/gateway/internal/adapters/rest/ping"
 	//projectrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/project"
 	userrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/user"
@@ -60,15 +61,33 @@ func run() error {
 		}
 	}()
 
+	authMW := middleware.NewAuthMiddleware(log, cfg.JWT.Issuer, cfg.JWT.Secret)
+
 	mux := http.NewServeMux()
 
 	// userService endpoints
-	mux.Handle("POST /api/users", userrest.NewCreateUserHandler(log, userClient))
-	mux.Handle("GET /api/users/{id}", userrest.NewGetUserByIdHandler(log, userClient))
-	//mux.Handle("GET /api/users/{email}", userrest.NewGetUserByEmailHandler(log, userClient))
-	mux.Handle("GET /api/users", userrest.NewListUsersHandler(log, userClient))
-	mux.Handle("PUT /api/users/{id}", userrest.NewUpdateUserHandler(log, userClient))
-	mux.Handle("DELETE /api/users/{id}", userrest.NewDeleteUserHandler(log, userClient))
+	mux.Handle("POST /api/users", middleware.Chain(userrest.NewCreateUserHandler(log, userClient), authMW.Auth,
+		authMW.RequireRoles(middleware.RoleAdmin),
+	))
+
+	mux.Handle("GET /api/users/{id}", middleware.Chain(userrest.NewGetUserByIdHandler(log, userClient), authMW.Auth))
+
+	mux.Handle("GET /api/users", middleware.Chain(
+		userrest.NewListUsersHandler(log, userClient),
+		authMW.Auth,
+		authMW.RequireRoles(middleware.RoleAdmin),
+	))
+
+	mux.Handle("PUT /api/users/{id}", middleware.Chain(
+		userrest.NewUpdateUserHandler(log, userClient),
+		authMW.Auth,
+	))
+
+	mux.Handle("DELETE /api/users/{id}", middleware.Chain(
+		userrest.NewDeleteUserHandler(log, userClient),
+		authMW.Auth,
+		authMW.RequireRoles(middleware.RoleAdmin),
+	))
 
 	// projectService endpoints
 	//mux.Handle("POST /api/projects", projectrest.NewCreateProjectHandler(log, projectClient))

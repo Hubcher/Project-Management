@@ -1,5 +1,8 @@
 log_level: DEBUG
-address: :8080
-token_ttl: 1h
-db_address: postgres://postgres:password@auth-postgres:5432/userdb?sslmode=disable
+address: ":50051"
+token_ttl: 15m
+refresh_token_ttl: 720h
+db_address: "postgres://postgres:password@auth-postgres:5432/authdb?sslmode=disable"
 env: local
+jwt_issuer: "auth-service"
+jwt_secret: "super-secret-key"

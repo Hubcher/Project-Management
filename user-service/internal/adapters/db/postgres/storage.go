@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -101,6 +102,7 @@ func (db *DB) CreateUser(ctx context.Context, input core.CreateUserInput) (*core
 		input.Password,
 		input.Role,
 	); err != nil {
+		// TODO: Сделать проверку на существующего пользователя
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 	return row.toCore(), nil
@@ -109,7 +111,7 @@ func (db *DB) CreateUser(ctx context.Context, input core.CreateUserInput) (*core
 func (db *DB) GetUser(ctx context.Context, id string) (*core.User, error) {
 	var row userRow
 	if err := db.conn.GetContext(ctx, &row, getUserQuery, id); err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, core.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("error getting user: %w", err)
@@ -150,7 +152,7 @@ func (db *DB) UpdateUser(ctx context.Context, input core.UpdateUserInput) (*core
 		input.Password,
 		input.Role,
 	); err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, core.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("error updating user: %w", err)

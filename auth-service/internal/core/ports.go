@@ -1,13 +1,22 @@
 package core
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
-type DB interface {
-	SaveUser(ctx context.Context, email string, passHash []byte) (uid string, err error)
-	User(ctx context.Context, email string) (User, error)
-	isAdmin(ctx context.Context, userID string) (bool, error)
+type AuthRepository interface {
+	CreateAccount(ctx context.Context, account AuthAccount) error
+	GetAccountByEmail(ctx context.Context, email string) (AuthAccount, error)
+	GetAccountByUserID(ctx context.Context, userID string) (AuthAccount, error)
+	DeleteAccount(ctx context.Context, userID string) error
+
+	CreateRefreshSession(ctx context.Context, session RefreshSession) error
+	GetRefreshSessionByTokenHash(ctx context.Context, tokenHash string) (RefreshSession, error)
+	RevokeRefreshSession(ctx context.Context, sessionID string, revokedAt time.Time) error
+	RevokeAllRefreshSessionsByUserID(ctx context.Context, userID string, revokedAt time.Time) error
 }
 
-type AppProvider interface {
-	App(ctx context.Context, appID int) (App, error)
+type UserProvisioner interface {
+	CreateUser(ctx context.Context, id string, name string) error
 }

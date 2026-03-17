@@ -3,6 +3,7 @@ package postgres
 import (
 	"embed"
 	"errors"
+	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
@@ -24,17 +25,17 @@ func (db *DB) Migrate() error {
 	}
 	m, err := migrate.NewWithInstance("iofs", files, "pgx", driver)
 	if err != nil {
-		return err
+		return fmt.Errorf("create migrate instance: %w", err)
 	}
 
 	err = m.Up()
 
 	if err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {
-			db.log.Error("migration failed", "error", err)
-			return err
+			db.log.Error("no new migrations to apply")
+			return nil
 		}
-		db.log.Debug("migration did not change anything")
+		return fmt.Errorf("apply migrations: %w", err)
 	}
 
 	db.log.Debug("migration finished")

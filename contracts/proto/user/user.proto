@@ -3,58 +3,36 @@ syntax = "proto3";
 package user;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/Hubcher/project-management/contracts/gen/userpb";
 
 service UserService {
-  // ping
-  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty);
 
-  //CRUD rpc
-  rpc CreateUser(CreateUserRequest) returns (User) {}
-  rpc GetUserById(GetUserByIdRequest) returns (User) {}
-  rpc GetUserByEmail(GetUserByEmailRequest) returns (UserWithPassword) {}
-  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
-  rpc UpdateUser(UpdateUserRequest) returns (User) {}
-  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {}
+  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc GetUserById(GetUserByIdRequest) returns (User);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
 }
 
 message User {
   string id = 1;
   string name = 2;
-  string email = 3;
-  string role = 4;
-  string created_at = 5;
+  google.protobuf.Timestamp created_at = 3;
 }
 
 message CreateUserRequest {
   string id = 1;
   string name = 2;
-  string email = 3;
-  string password = 4;
-  string role = 5;
 }
 
 message GetUserByIdRequest {
   string id = 1;
 }
 
-message GetUserByEmailRequest {
-  string email = 1;
-}
-
-message UserWithPassword {
-  string id = 1;
-  string name = 2;
-  string email = 3;
-  string password = 4; // должен быть hash, не raw password
-  string role = 5;
-  string created_at = 6;
-}
-
-message ListUsersRequest {
-  string role = 1;
-}
+message ListUsersRequest {}
 
 message ListUsersResponse {
   repeated User users = 1;
@@ -62,10 +40,7 @@ message ListUsersResponse {
 
 message UpdateUserRequest {
   string id = 1;
-  string name = 2;
-  string email = 3;
-  string password = 4;
-  string role = 5;
+  optional string name = 2;
 }
 
 message DeleteUserRequest {

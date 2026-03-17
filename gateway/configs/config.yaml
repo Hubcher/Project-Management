@@ -4,3 +4,7 @@ project_address: project-service:8080
 api-server:
   address: :8080
   timeout: 5s
+
+jwt:
+  issuer: "auth-service"
+  secret: "super-secret-key"

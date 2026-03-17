@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/Hubcher/project-management/auth-service/internal/adapters/db/postgres"
 	authgrpc "github.com/Hubcher/project-management/auth-service/internal/adapters/grpc/auth"
 	"github.com/Hubcher/project-management/auth-service/internal/config"
 	"github.com/Hubcher/project-management/auth-service/internal/core"
@@ -39,6 +40,19 @@ func run() error {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
+	db, err := postgres.New(log, cfg.DBAddress)
+	if err != nil {
+		return fmt.Errorf("could not connect to database: %w", err)
+	}
+	defer func() {
+		if cerr := db.Close(); cerr != nil {
+			log.Error("could not close connection to database", "error", cerr)
+		}
+	}()
+	if err = db.Migrate(); err != nil {
+		return fmt.Errorf("could not migrate database: %w", err)
+	}
+
 	authService := core.NewService(log, db)
 
 	// gRPC server
@@ -51,15 +65,15 @@ func run() error {
 	authpb.RegisterAuthServiceServer(s, authgrpc.NewServer(authService))
 	reflection.Register(s)
 
-	if err = s.Serve(listener); err != nil {
-		return fmt.Errorf("failed to serve: %v", err)
-	}
-
 	go func() {
 		<-ctx.Done()
 		log.Info("Gracefully shutting down auth-service server")
 		s.GracefulStop()
 	}()
+
+	if err = s.Serve(listener); err != nil {
+		return fmt.Errorf("failed to serve: %v", err)
+	}
 
 	return nil
 }
