@@ -25,5 +25,5 @@ tools:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH)/bin v2.4.0
 	@echo "checking protobuf compiler, if it fails follow guide at https://protobuf.dev/installation/"
-	@which -s protoc && echo OK || exit 1
+	@command -v protoc >/dev/null 2>&1 && echo OK || exit 1
 

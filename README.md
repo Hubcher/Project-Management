@@ -20,6 +20,13 @@ buildin-crm-backend/
 └── README.md
 ```
 
+## Диаграмма проекта
+
+<p>
+  <img src="images/Microservice_Diagram.png" alt="Диаграмма проекта" width="1000">
+</p>
+
+
 ---
 
 ## 🧑‍💻 Разработка
