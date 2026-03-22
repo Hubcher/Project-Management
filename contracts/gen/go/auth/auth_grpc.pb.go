@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v3.6.1
-// source: proto/auth/auth.proto
+// source: auth/auth.proto
 
 package authpb
 
@@ -20,9 +20,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Ping_FullMethodName     = "/auth.AuthService/Ping"
-	AuthService_Register_FullMethodName = "/auth.AuthService/Register"
-	AuthService_Login_FullMethodName    = "/auth.AuthService/Login"
+	AuthService_Ping_FullMethodName              = "/auth.AuthService/Ping"
+	AuthService_Register_FullMethodName          = "/auth.AuthService/Register"
+	AuthService_Login_FullMethodName             = "/auth.AuthService/Login"
+	AuthService_AdminRegister_FullMethodName     = "/auth.AuthService/AdminRegister"
+	AuthService_AdminLogin_FullMethodName        = "/auth.AuthService/AdminLogin"
+	AuthService_Validate_FullMethodName          = "/auth.AuthService/Validate"
+	AuthService_DeleteCredentials_FullMethodName = "/auth.AuthService/DeleteCredentials"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -32,6 +36,11 @@ type AuthServiceClient interface {
 	Ping(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*empty.Empty, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	AdminRegister(ctx context.Context, in *AdminRegisterRequest, opts ...grpc.CallOption) (*AdminRegisterResponse, error)
+	AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error)
+	// пригодится для удаления пользователя через gateway orchestration
+	DeleteCredentials(ctx context.Context, in *DeleteCredentialsRequest, opts ...grpc.CallOption) (*DeleteCredentialsResponse, error)
 }
 
 type authServiceClient struct {
@@ -72,6 +81,46 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 	return out, nil
 }
 
+func (c *authServiceClient) AdminRegister(ctx context.Context, in *AdminRegisterRequest, opts ...grpc.CallOption) (*AdminRegisterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminRegisterResponse)
+	err := c.cc.Invoke(ctx, AuthService_AdminRegister_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, AuthService_AdminLogin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateResponse)
+	err := c.cc.Invoke(ctx, AuthService_Validate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DeleteCredentials(ctx context.Context, in *DeleteCredentialsRequest, opts ...grpc.CallOption) (*DeleteCredentialsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteCredentialsResponse)
+	err := c.cc.Invoke(ctx, AuthService_DeleteCredentials_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -79,6 +128,11 @@ type AuthServiceServer interface {
 	Ping(context.Context, *empty.Empty) (*empty.Empty, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	AdminRegister(context.Context, *AdminRegisterRequest) (*AdminRegisterResponse, error)
+	AdminLogin(context.Context, *AdminLoginRequest) (*LoginResponse, error)
+	Validate(context.Context, *ValidateRequest) (*ValidateResponse, error)
+	// пригодится для удаления пользователя через gateway orchestration
+	DeleteCredentials(context.Context, *DeleteCredentialsRequest) (*DeleteCredentialsResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -97,6 +151,18 @@ func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterRequest
 }
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedAuthServiceServer) AdminRegister(context.Context, *AdminRegisterRequest) (*AdminRegisterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AdminRegister not implemented")
+}
+func (UnimplementedAuthServiceServer) AdminLogin(context.Context, *AdminLoginRequest) (*LoginResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AdminLogin not implemented")
+}
+func (UnimplementedAuthServiceServer) Validate(context.Context, *ValidateRequest) (*ValidateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Validate not implemented")
+}
+func (UnimplementedAuthServiceServer) DeleteCredentials(context.Context, *DeleteCredentialsRequest) (*DeleteCredentialsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteCredentials not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -173,6 +239,78 @@ func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_AdminRegister_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminRegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).AdminRegister(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_AdminRegister_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).AdminRegister(ctx, req.(*AdminRegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_AdminLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).AdminLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_AdminLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).AdminLogin(ctx, req.(*AdminLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_Validate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).Validate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_Validate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).Validate(ctx, req.(*ValidateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DeleteCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCredentialsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DeleteCredentials(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DeleteCredentials_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DeleteCredentials(ctx, req.(*DeleteCredentialsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -192,7 +330,23 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Login",
 			Handler:    _AuthService_Login_Handler,
 		},
+		{
+			MethodName: "AdminRegister",
+			Handler:    _AuthService_AdminRegister_Handler,
+		},
+		{
+			MethodName: "AdminLogin",
+			Handler:    _AuthService_AdminLogin_Handler,
+		},
+		{
+			MethodName: "Validate",
+			Handler:    _AuthService_Validate_Handler,
+		},
+		{
+			MethodName: "DeleteCredentials",
+			Handler:    _AuthService_DeleteCredentials_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/auth/auth.proto",
+	Metadata: "auth/auth.proto",
 }

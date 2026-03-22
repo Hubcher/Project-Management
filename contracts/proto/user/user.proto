@@ -4,9 +4,9 @@ package user;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/Hubcher/project-management/contracts/gen/userpb";
-
 service UserService {
   rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty);
 
@@ -40,7 +40,7 @@ message ListUsersResponse {
 
 message UpdateUserRequest {
   string id = 1;
-  optional string name = 2;
+  google.protobuf.StringValue name = 2;
 }
 
 message DeleteUserRequest {

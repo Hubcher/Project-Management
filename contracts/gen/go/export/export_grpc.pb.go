@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v3.6.1
-// source: proto/export/export.proto
+// source: export/export.proto
 
 package exportpb
 
@@ -118,5 +118,5 @@ var ExportService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/export/export.proto",
+	Metadata: "export/export.proto",
 }

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v3.6.1
-// source: proto/report/report.proto
+// source: report/report.proto
 
 package reportpb
 
@@ -21,18 +21,18 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-var File_proto_report_report_proto protoreflect.FileDescriptor
+var File_report_report_proto protoreflect.FileDescriptor
 
-const file_proto_report_report_proto_rawDesc = "" +
+const file_report_report_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/report/report.proto\x12\x06report\x1a\x1bgoogle/protobuf/empty.proto2I\n" +
+	"\x13report/report.proto\x12\x06report\x1a\x1bgoogle/protobuf/empty.proto2I\n" +
 	"\rReportService\x128\n" +
 	"\x04Ping\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00B>Z<github.com/Hubcher/project-management/contracts/gen/reportpbb\x06proto3"
 
-var file_proto_report_report_proto_goTypes = []any{
+var file_report_report_proto_goTypes = []any{
 	(*empty.Empty)(nil), // 0: google.protobuf.Empty
 }
-var file_proto_report_report_proto_depIdxs = []int32{
+var file_report_report_proto_depIdxs = []int32{
 	0, // 0: report.ReportService.Ping:input_type -> google.protobuf.Empty
 	0, // 1: report.ReportService.Ping:output_type -> google.protobuf.Empty
 	1, // [1:2] is the sub-list for method output_type
@@ -42,25 +42,25 @@ var file_proto_report_report_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_report_report_proto_init() }
-func file_proto_report_report_proto_init() {
-	if File_proto_report_report_proto != nil {
+func init() { file_report_report_proto_init() }
+func file_report_report_proto_init() {
+	if File_report_report_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_report_report_proto_rawDesc), len(file_proto_report_report_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_report_report_proto_rawDesc), len(file_report_report_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_report_report_proto_goTypes,
-		DependencyIndexes: file_proto_report_report_proto_depIdxs,
+		GoTypes:           file_report_report_proto_goTypes,
+		DependencyIndexes: file_report_report_proto_depIdxs,
 	}.Build()
-	File_proto_report_report_proto = out.File
-	file_proto_report_report_proto_goTypes = nil
-	file_proto_report_report_proto_depIdxs = nil
+	File_report_report_proto = out.File
+	file_report_report_proto_goTypes = nil
+	file_report_report_proto_depIdxs = nil
 }
