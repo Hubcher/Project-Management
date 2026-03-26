@@ -12,8 +12,6 @@ service AuthService {
 
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc Login(LoginRequest) returns (LoginResponse);
-  rpc AdminRegister(AdminRegisterRequest) returns (AdminRegisterResponse);
-  rpc AdminLogin(AdminLoginRequest) returns (LoginResponse);
   rpc Validate(ValidateRequest) returns (ValidateResponse);
 
   // пригодится для удаления пользователя через gateway orchestration
@@ -22,13 +20,12 @@ service AuthService {
 }
 
 message RegisterRequest {
-  string username = 1;
-  string email = 2;
-  string password = 3;
+  string email = 1;
+  string password = 2;
 }
 
 message RegisterResponse {
-  string id = 1;
+  string user_id = 1;
   int64 status = 2;
   string error = 3;
 }
@@ -44,23 +41,6 @@ message LoginResponse {
   string error = 3;
 }
 
-message AdminRegisterRequest {
-  string username = 1;
-  string password = 2;
-}
-
-message AdminRegisterResponse {
-  string id = 1;
-  string username = 2;
-  int64 status = 3;
-  string error = 4;
-}
-
-message AdminLoginRequest {
-  string username = 1;
-  string password = 2;
-}
-
 message ValidateRequest {
   string token = 1;
 }
@@ -68,7 +48,7 @@ message ValidateRequest {
 message ValidateResponse {
   int64 status = 1;
   string error = 2;
-  string userID = 3;
+  string user_id = 3;
   string role = 4;
   string email = 5;
 }
