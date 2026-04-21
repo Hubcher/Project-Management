@@ -90,7 +90,7 @@ project-management/
 
 - секреты и environment-specific значения лучше задавать через env / secrets manager, а не хардкодить в YAML
 
-В этом проекте уже используется именно такая модель:
+Но в этом проекте используется такая модель:
 
 - структура конфигурации задается в `configs/config.yaml`
 - `docker-compose.yaml` переопределяет адреса сервисов, строки подключения к БД и bootstrap admin через env
