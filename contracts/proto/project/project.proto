@@ -2,51 +2,77 @@ syntax = "proto3";
 
 package project;
 
-import "google/protobuf/empty.proto";
+option go_package = "github.com/Hubcher/project-management/contracts/gen/go/project;projectpb";
 
-option go_package = "github.com/Hubcher/project-management/contracts/gen/projectpb";
-
-
-// RPC
 service ProjectService {
-  // PING
-  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc Ping(Empty) returns (Empty) {}
 
-  // CRUD
   rpc CreateProject(CreateProjectRequest) returns (Project) {}
   rpc GetProject(GetProjectRequest) returns (Project) {}
   rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse) {}
   rpc UpdateProject(UpdateProjectRequest) returns (Project) {}
-  rpc DeleteProject(DeleteProjectRequest) returns (google.protobuf.Empty) {}
+  rpc DeleteProject(DeleteProjectRequest) returns (Empty) {}
 
+  rpc CreateStage(CreateProjectStageRequest) returns (ProjectStage) {}
+  rpc GetStage(GetProjectStageRequest) returns (ProjectStage) {}
+  rpc ListStages(ListProjectStagesRequest) returns (ListProjectStagesResponse) {}
+  rpc UpdateStage(UpdateProjectStageRequest) returns (ProjectStage) {}
+  rpc DeleteStage(DeleteProjectStageRequest) returns (Empty) {}
+
+  rpc CreateMember(CreateProjectMemberRequest) returns (ProjectMember) {}
+  rpc GetMember(GetProjectMemberRequest) returns (ProjectMember) {}
+  rpc ListMembers(ListProjectMembersRequest) returns (ListProjectMembersResponse) {}
+  rpc UpdateMember(UpdateProjectMemberRequest) returns (ProjectMember) {}
+  rpc DeleteMember(DeleteProjectMemberRequest) returns (Empty) {}
+
+  rpc CreateEvent(CreateProjectEventRequest) returns (ProjectEvent) {}
+  rpc GetEvent(GetProjectEventRequest) returns (ProjectEvent) {}
+  rpc ListEvents(ListProjectEventsRequest) returns (ListProjectEventsResponse) {}
+  rpc UpdateEvent(UpdateProjectEventRequest) returns (ProjectEvent) {}
+  rpc DeleteEvent(DeleteProjectEventRequest) returns (Empty) {}
 }
 
-// Models
+message Empty {}
+
 message Project {
-  int32 contract_number = 1;
-  string name = 2;
-  string start_date = 3; // YYYY-MM-DD
-  string deadline = 4; // YYYY-MM-DD
-  string price = 5;    // string, потому что теряется точность numeric
-  string user_id = 6; // UUID как строка
-  string created_at = 7;
+  string id = 1;
+  string project_code = 2;
+  string name = 3;
+  string description = 4;
+  string contract_number = 5;
+  string status = 6;
+  string customer_name = 7;
+  string manager_id = 8;
+  string planned_start_date = 9;
+  string planned_deadline = 10;
+  string actual_start_date = 11;
+  string actual_deadline = 12;
+  string planned_budget = 13;
+  string created_at = 14;
+  string updated_at = 15;
 }
 
-// Request/Response
 message CreateProjectRequest {
-  string name = 1;
-  string start_date = 2;
-  string deadline = 3;
-  string price = 4;
-  string user_id = 5;
+  string project_code = 1;
+  string name = 2;
+  string description = 3;
+  string contract_number = 4;
+  string status = 5;
+  string customer_name = 6;
+  string manager_id = 7;
+  string planned_start_date = 8;
+  string planned_deadline = 9;
+  string actual_start_date = 10;
+  string actual_deadline = 11;
+  string planned_budget = 12;
 }
 
 message GetProjectRequest {
-  int32 contract_number = 1;
+  string id = 1;
 }
 
 message ListProjectsRequest {
-  string user_id = 1;
+  string participant_user_id = 1;
 }
 
 message ListProjectsResponse {
@@ -54,14 +80,170 @@ message ListProjectsResponse {
 }
 
 message UpdateProjectRequest {
-  int32 contract_number = 1;
-  string name = 2;
-  string start_date = 3;
-  string deadline = 4;
-  string price = 5;
-  string user_id = 6;
+  string id = 1;
+  string project_code = 2;
+  string name = 3;
+  string description = 4;
+  string contract_number = 5;
+  string status = 6;
+  string customer_name = 7;
+  string manager_id = 8;
+  string planned_start_date = 9;
+  string planned_deadline = 10;
+  string actual_start_date = 11;
+  string actual_deadline = 12;
+  string planned_budget = 13;
 }
 
 message DeleteProjectRequest {
-  int32 contract_number = 1;
+  string id = 1;
+}
+
+message ProjectStage {
+  string id = 1;
+  string project_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 sequence_number = 5;
+  string status = 6;
+  string planned_start_date = 7;
+  string planned_end_date = 8;
+  string actual_start_date = 9;
+  string actual_end_date = 10;
+  string planned_income = 11;
+  string planned_expense = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message CreateProjectStageRequest {
+  string project_id = 1;
+  string name = 2;
+  string description = 3;
+  int32 sequence_number = 4;
+  string status = 5;
+  string planned_start_date = 6;
+  string planned_end_date = 7;
+  string actual_start_date = 8;
+  string actual_end_date = 9;
+  string planned_income = 10;
+  string planned_expense = 11;
+}
+
+message GetProjectStageRequest {
+  string id = 1;
+}
+
+message ListProjectStagesRequest {
+  string project_id = 1;
+}
+
+message ListProjectStagesResponse {
+  repeated ProjectStage stages = 1;
+}
+
+message UpdateProjectStageRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 sequence_number = 4;
+  string status = 5;
+  string planned_start_date = 6;
+  string planned_end_date = 7;
+  string actual_start_date = 8;
+  string actual_end_date = 9;
+  string planned_income = 10;
+  string planned_expense = 11;
+}
+
+message DeleteProjectStageRequest {
+  string id = 1;
+}
+
+message ProjectMember {
+  string id = 1;
+  string project_id = 2;
+  string user_id = 3;
+  string role_in_project = 4;
+  bool is_active = 5;
+  string joined_at = 6;
+  string left_at = 7;
+}
+
+message CreateProjectMemberRequest {
+  string project_id = 1;
+  string user_id = 2;
+  string role_in_project = 3;
+}
+
+message GetProjectMemberRequest {
+  string id = 1;
+}
+
+message ListProjectMembersRequest {
+  string project_id = 1;
+}
+
+message ListProjectMembersResponse {
+  repeated ProjectMember members = 1;
+}
+
+message UpdateProjectMemberRequest {
+  string id = 1;
+  string role_in_project = 2;
+  bool is_active = 3;
+  string left_at = 4;
+}
+
+message DeleteProjectMemberRequest {
+  string id = 1;
+}
+
+message ProjectEvent {
+  string id = 1;
+  string project_id = 2;
+  string stage_id = 3;
+  string name = 4;
+  string description = 5;
+  string planned_date = 6;
+  string actual_date = 7;
+  string status = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message CreateProjectEventRequest {
+  string project_id = 1;
+  string stage_id = 2;
+  string name = 3;
+  string description = 4;
+  string planned_date = 5;
+  string actual_date = 6;
+  string status = 7;
+}
+
+message GetProjectEventRequest {
+  string id = 1;
+}
+
+message ListProjectEventsRequest {
+  string project_id = 1;
+}
+
+message ListProjectEventsResponse {
+  repeated ProjectEvent events = 1;
+}
+
+message UpdateProjectEventRequest {
+  string id = 1;
+  string stage_id = 2;
+  string name = 3;
+  string description = 4;
+  string planned_date = 5;
+  string actual_date = 6;
+  string status = 7;
+}
+
+message DeleteProjectEventRequest {
+  string id = 1;
 }

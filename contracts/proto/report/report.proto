@@ -2,10 +2,152 @@ syntax = "proto3";
 
 package report;
 
-import "google/protobuf/empty.proto";
-
-option go_package = "github.com/Hubcher/project-management/contracts/gen/reportpb";
+option go_package = "github.com/Hubcher/project-management/contracts/gen/go/report;reportpb";
 
 service ReportService {
-  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc Ping(Empty) returns (Empty) {}
+
+  rpc CreateReport(CreateDailyReportRequest) returns (DailyReport) {}
+  rpc GetReport(GetDailyReportRequest) returns (DailyReport) {}
+  rpc ListReports(ListDailyReportsRequest) returns (ListDailyReportsResponse) {}
+  rpc UpdateReport(UpdateDailyReportRequest) returns (DailyReport) {}
+  rpc DeleteReport(DeleteDailyReportRequest) returns (Empty) {}
+
+  rpc CreateEntry(CreateDailyReportEntryRequest) returns (DailyReportEntry) {}
+  rpc GetEntry(GetDailyReportEntryRequest) returns (DailyReportEntry) {}
+  rpc ListEntries(ListDailyReportEntriesRequest) returns (ListDailyReportEntriesResponse) {}
+  rpc UpdateEntry(UpdateDailyReportEntryRequest) returns (DailyReportEntry) {}
+  rpc DeleteEntry(DeleteDailyReportEntryRequest) returns (Empty) {}
+
+  rpc CreateComment(CreateDailyReportCommentRequest) returns (DailyReportComment) {}
+  rpc GetComment(GetDailyReportCommentRequest) returns (DailyReportComment) {}
+  rpc ListComments(ListDailyReportCommentsRequest) returns (ListDailyReportCommentsResponse) {}
+  rpc UpdateComment(UpdateDailyReportCommentRequest) returns (DailyReportComment) {}
+  rpc DeleteComment(DeleteDailyReportCommentRequest) returns (Empty) {}
+}
+
+message Empty {}
+
+message DailyReport {
+  string id = 1;
+  string user_id = 2;
+  string report_date = 3;
+  string status = 4;
+  string total_hours = 5;
+  string summary = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message CreateDailyReportRequest {
+  string user_id = 1;
+  string report_date = 2;
+  string status = 3;
+  string summary = 4;
+}
+
+message GetDailyReportRequest {
+  string id = 1;
+}
+
+message ListDailyReportsRequest {
+  string user_id = 1;
+  string status = 2;
+  string date_from = 3;
+  string date_to = 4;
+}
+
+message ListDailyReportsResponse {
+  repeated DailyReport reports = 1;
+}
+
+message UpdateDailyReportRequest {
+  string id = 1;
+  string status = 2;
+  string summary = 3;
+}
+
+message DeleteDailyReportRequest {
+  string id = 1;
+}
+
+message DailyReportEntry {
+  string id = 1;
+  string report_id = 2;
+  string project_id = 3;
+  string stage_id = 4;
+  string work_type = 5;
+  string description = 6;
+  string hours_spent = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+message CreateDailyReportEntryRequest {
+  string report_id = 1;
+  string project_id = 2;
+  string stage_id = 3;
+  string work_type = 4;
+  string description = 5;
+  string hours_spent = 6;
+}
+
+message GetDailyReportEntryRequest {
+  string id = 1;
+}
+
+message ListDailyReportEntriesRequest {
+  string report_id = 1;
+}
+
+message ListDailyReportEntriesResponse {
+  repeated DailyReportEntry entries = 1;
+}
+
+message UpdateDailyReportEntryRequest {
+  string id = 1;
+  string project_id = 2;
+  string stage_id = 3;
+  string work_type = 4;
+  string description = 5;
+  string hours_spent = 6;
+}
+
+message DeleteDailyReportEntryRequest {
+  string id = 1;
+}
+
+message DailyReportComment {
+  string id = 1;
+  string report_id = 2;
+  string author_user_id = 3;
+  string comment = 4;
+  string created_at = 5;
+}
+
+message CreateDailyReportCommentRequest {
+  string report_id = 1;
+  string author_user_id = 2;
+  string comment = 3;
+}
+
+message GetDailyReportCommentRequest {
+  string id = 1;
+}
+
+message ListDailyReportCommentsRequest {
+  string report_id = 1;
+}
+
+message ListDailyReportCommentsResponse {
+  repeated DailyReportComment comments = 1;
+}
+
+message UpdateDailyReportCommentRequest {
+  string id = 1;
+  string comment = 2;
+}
+
+message DeleteDailyReportCommentRequest {
+  string id = 1;
 }
