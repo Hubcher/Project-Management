@@ -1,108 +1,127 @@
 package auth
 
 import (
-	"context"
+    "context"
+    "errors"
+    "strings"
 
-	"github.com/Hubcher/project-management/auth-service/internal/core"
-	authpb "github.com/Hubcher/project-management/contracts/gen/proto/auth"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
-	"google.golang.org/protobuf/types/known/emptypb"
+    "github.com/Hubcher/project-management/auth-service/internal/core"
+    authpb "github.com/Hubcher/project-management/contracts/gen/go/auth"
+    "google.golang.org/grpc/codes"
+    "google.golang.org/grpc/metadata"
+    "google.golang.org/grpc/status"
+    "google.golang.org/protobuf/types/known/emptypb"
 )
 
-const emptyValue = 0
+const accountRoleMetadataKey = "x-account-role"
 
 type Server struct {
-	authpb.UnimplementedAuthServiceServer
-	service core.Service
-	auth    Auth // TODO: убрать в сервис?
+    authpb.UnimplementedAuthServiceServer
+    service *core.Service
 }
 
-func NewServer(service core.Service) *Server {
-	return &Server{service: service}
+func NewServer(svc *core.Service) *Server {
+    return &Server{service: svc}
 }
 
 func (s *Server) Ping(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	return &emptypb.Empty{}, nil
-}
-
-type Auth interface {
-	Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
-	Login(ctx context.Context, email string, password string, appID int) (token string, err error)
-	RegisterNewUser(ctx context.Context, email string, password string) (UserID string, err error)
-	IsAdmin(ctx context.Context, email string) (bool, error)
-}
-
-func (s *Server) Login(ctx context.Context, req *authpb.LoginRequest) (*authpb.LoginResponse, error) {
-	// TODO: через какой-нибудь package сделать валидацию и вынести в отдельную функцию
-	if err := validateLogin(req); err != nil {
-		return nil, err
-	}
-
-	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int(req.GetAppId()))
-	if err != nil {
-		
-		return nil, status.Error(codes.InvalidArgument, "internal error")
-	}
-
-	return &authpb.LoginResponse{Token: token}, nil
+    return &emptypb.Empty{}, nil
 }
 
 func (s *Server) Register(ctx context.Context, req *authpb.RegisterRequest) (*authpb.RegisterResponse, error) {
-	if err := validateRegister(req); err != nil {
-		return nil, err
-	}
+    role := extractRequestedRole(ctx)
 
-	userID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
-	if err != nil {
-		// TODO: .... ошибки по типу уже существующего пользователя
-		return nil, status.Error(codes.InvalidArgument, "internal error")
-	}
-
-	return &authpb.RegisterResponse{UserId: userID}, nil
-
+    userID, err := s.service.RegisterWithRole(ctx, req.GetEmail(), req.GetPassword(), role)
+    if err != nil {
+        return &authpb.RegisterResponse{
+            Status: 500,
+            Error:  err.Error(),
+        }, mapCoreError(err)
+    }
+    return &authpb.RegisterResponse{
+        UserId: userID,
+        Status: 201,
+    }, nil
 }
 
-func (s *Server) IsAdmin(ctx context.Context, req *authpb.IsAdminRequest) (*authpb.IsAdminResponse, error) {
-	if err := validateIsAdmin(req); err != nil {
-		return nil, err
-	}
-
-	isAdmin, err := s.auth.IsAdmin(ctx, req.UserId)
-	if err != nil {
-		// TODO: ...
-		return nil, status.Error(codes.InvalidArgument, "internal error")
-	}
-	return &authpb.IsAdminResponse{IsAdmin: isAdmin}, nil
+func (s *Server) Login(ctx context.Context, req *authpb.LoginRequest) (*authpb.LoginResponse, error) {
+    token, err := s.service.Login(ctx, req.GetEmail(), req.GetPassword())
+    if err != nil {
+        return &authpb.LoginResponse{
+            Status: 401,
+            Error:  err.Error(),
+        }, mapCoreError(err)
+    }
+    return &authpb.LoginResponse{
+        Token:  token,
+        Status: 200,
+    }, nil
 }
 
-func validateLogin(req *authpb.LoginRequest) error {
-	if req.GetEmail() == "" {
-		return status.Error(codes.InvalidArgument, "email is required")
-	}
-	if req.GetPassword() == "" {
-		return status.Error(codes.InvalidArgument, "password is required")
-	}
-	if req.GetAppId() == emptyValue {
-		return status.Error(codes.InvalidArgument, "app_id is required")
-	}
-	return nil
+func (s *Server) Validate(ctx context.Context, req *authpb.ValidateRequest) (*authpb.ValidateResponse, error) {
+    claims, err := s.service.Validate(ctx, req.GetToken())
+    if err != nil {
+        return &authpb.ValidateResponse{
+            Status: 401,
+            Error:  err.Error(),
+        }, mapCoreError(err)
+    }
+    return &authpb.ValidateResponse{
+        Status: 200,
+        UserId: claims.UserID,
+        Role:   string(claims.Role),
+        Email:  claims.Email,
+    }, nil
 }
 
-func validateRegister(req *authpb.RegisterRequest) error {
-	if req.GetEmail() == "" {
-		return status.Error(codes.InvalidArgument, "email is required")
-	}
-	if req.GetPassword() == "" {
-		return status.Error(codes.InvalidArgument, "password is required")
-	}
-	return nil
+func (s *Server) DeleteCredentials(ctx context.Context, req *authpb.DeleteCredentialsRequest) (*authpb.DeleteCredentialsResponse, error) {
+    if err := s.service.DeleteCredentials(ctx, req.GetUserID()); err != nil {
+        return &authpb.DeleteCredentialsResponse{
+            Status: 400,
+            Error:  err.Error(),
+        }, mapCoreError(err)
+    }
+    return &authpb.DeleteCredentialsResponse{
+        Status: 200,
+    }, nil
 }
 
-func validateIsAdmin(req *authpb.IsAdminRequest) error {
-	if req.GetUserId() == "" {
-		return status.Error(codes.InvalidArgument, "user_id is required")
-	}
-	return nil
+func extractRequestedRole(ctx context.Context) core.Role {
+    md, ok := metadata.FromIncomingContext(ctx)
+    if !ok {
+        return core.RoleUser
+    }
+
+    values := md.Get(accountRoleMetadataKey)
+    if len(values) == 0 {
+        return core.RoleUser
+    }
+
+    switch strings.ToLower(strings.TrimSpace(values[0])) {
+    case string(core.RoleAdmin):
+        return core.RoleAdmin
+    default:
+        return core.RoleUser
+    }
+}
+
+func mapCoreError(err error) error {
+    switch {
+    case errors.Is(err, core.ErrInvalidArgument):
+        return status.Error(codes.InvalidArgument, err.Error())
+    case errors.Is(err, core.ErrAccountExists):
+        return status.Error(codes.AlreadyExists, err.Error())
+    case errors.Is(err, core.ErrInvalidCredentials):
+        return status.Error(codes.Unauthenticated, err.Error())
+    case errors.Is(err, core.ErrInvalidToken):
+        return status.Error(codes.Unauthenticated, err.Error())
+    case errors.Is(err, core.ErrForbidden):
+        return status.Error(codes.PermissionDenied, err.Error())
+    case errors.Is(err, core.ErrInactiveAccount):
+        return status.Error(codes.PermissionDenied, err.Error())
+    case errors.Is(err, core.ErrAccountNotFound):
+        return status.Error(codes.NotFound, err.Error())
+    default:
+        return status.Error(codes.Internal, "internal error")
+    }
 }

@@ -1,22 +1,21 @@
 package core
 
-import (
-	"context"
-	"time"
-)
+import "context"
 
 type AuthRepository interface {
-	CreateAccount(ctx context.Context, account AuthAccount) error
-	GetAccountByEmail(ctx context.Context, email string) (AuthAccount, error)
-	GetAccountByUserID(ctx context.Context, userID string) (AuthAccount, error)
-	DeleteAccount(ctx context.Context, userID string) error
-
-	CreateRefreshSession(ctx context.Context, session RefreshSession) error
-	GetRefreshSessionByTokenHash(ctx context.Context, tokenHash string) (RefreshSession, error)
-	RevokeRefreshSession(ctx context.Context, sessionID string, revokedAt time.Time) error
-	RevokeAllRefreshSessionsByUserID(ctx context.Context, userID string, revokedAt time.Time) error
+    CreateAccount(ctx context.Context, acc Account) error
+    GetByEmail(ctx context.Context, email string) (Account, error)
+    GetByUserID(ctx context.Context, userID string) (Account, error)
+    CountAccounts(ctx context.Context) (int, error)
+    DeleteByUserID(ctx context.Context, userID string) error
 }
 
-type UserProvisioner interface {
-	CreateUser(ctx context.Context, id string, name string) error
+type TokenManager interface {
+    Generate(claims Claims) (string, error)
+    Parse(token string) (Claims, error)
+}
+
+type PasswordManager interface {
+    Hash(password string) (string, error)
+    Compare(hash, password string) error
 }

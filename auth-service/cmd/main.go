@@ -12,7 +12,7 @@ import (
 	authgrpc "github.com/Hubcher/project-management/auth-service/internal/adapters/grpc/auth"
 	"github.com/Hubcher/project-management/auth-service/internal/config"
 	"github.com/Hubcher/project-management/auth-service/internal/core"
-	authpb "github.com/Hubcher/project-management/contracts/gen/proto/auth"
+	authpb "github.com/Hubcher/project-management/contracts/gen/go/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
@@ -32,7 +32,7 @@ func run() error {
 	flag.Parse()
 
 	cfg := config.MustLoad(configPath)
-	log := mustMakeLogger(cfg.LogLevel, cfg.Env)
+	log := mustMakeLogger(cfg.LogLevel)
 
 	log.Info("starting auth-service")
 	log.Debug("debug messages are enabled", slog.Any("cfg", cfg))
@@ -40,7 +40,7 @@ func run() error {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
-	db, err := postgres.New(log, cfg.DBAddress)
+	db, err := postgres.NewRepository(log, cfg.DBAddress)
 	if err != nil {
 		return fmt.Errorf("could not connect to database: %w", err)
 	}
@@ -49,13 +49,27 @@ func run() error {
 			log.Error("could not close connection to database", "error", cerr)
 		}
 	}()
+
 	if err = db.Migrate(); err != nil {
 		return fmt.Errorf("could not migrate database: %w", err)
 	}
 
-	authService := core.NewService(log, db)
+	pm := core.BcryptPasswordManager{Cost: 12}
+	tm := core.JWTManager{
+		Secret:   cfg.JWT.Secret,
+		Issuer:   cfg.JWT.Issuer,
+		Audience: cfg.JWT.Audience,
+		TTL:      cfg.JWT.TTL,
+	}
 
-	// gRPC server
+	authService := core.NewService(log, db, tm, pm)
+
+	if cfg.BootstrapAdmin.Enabled {
+		if err = authService.EnsureAdmin(ctx, cfg.BootstrapAdmin.Email, cfg.BootstrapAdmin.Password); err != nil {
+			return fmt.Errorf("could not ensure bootstrap admin: %w", err)
+		}
+	}
+
 	listener, err := net.Listen("tcp", cfg.Address)
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
@@ -78,7 +92,7 @@ func run() error {
 	return nil
 }
 
-func mustMakeLogger(loglevel string, env string) *slog.Logger {
+func mustMakeLogger(loglevel string) *slog.Logger {
 	var level slog.Level
 
 	switch loglevel {
@@ -94,7 +108,6 @@ func mustMakeLogger(loglevel string, env string) *slog.Logger {
 		panic("invalid log level " + loglevel)
 	}
 
-	// TODO: сделать для разных env
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level})
 	return slog.New(handler)
 }

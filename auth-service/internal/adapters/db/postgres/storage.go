@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Hubcher/project-management/auth-service/internal/core"
-	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 )
@@ -19,13 +18,13 @@ type DB struct {
 	conn *sqlx.DB
 }
 
-func New(log *slog.Logger, address string) (*DB, error) {
-
+func NewRepository(log *slog.Logger, address string) (*DB, error) {
 	db, err := sqlx.Connect("pgx", address)
 	if err != nil {
 		log.Error("connection problem", "address", address, "error", err)
 		return nil, err
 	}
+
 	return &DB{
 		log:  log,
 		conn: db,
@@ -36,208 +35,113 @@ func (db *DB) Close() error {
 	return db.conn.Close()
 }
 
-func (db *DB) CreateAccount(ctx context.Context, account core.AuthAccount) error {
-	const op = "postgresql.CreateAccount"
-
-	_, err := db.conn.ExecContext(
-		ctx,
-		createAccountQuery,
-		account.UserID,
-		account.Email,
-		account.PasswordHash,
-		account.Role,
-		account.IsActive,
-		account.CreatedAt,
-		account.UpdatedAt,
-		account.PasswordChangedAt)
-	if err != nil {
-		if isUniqueViolation(err) {
-			return fmt.Errorf("%s: %w", op, core.ErrEmailAlreadyExists)
-		}
-	}
-	return nil
+type accountRow struct {
+	UserID            string    `db:"user_id"`
+	Email             string    `db:"email"`
+	PasswordHash      string    `db:"password_hash"`
+	Role              string    `db:"role"`
+	IsActive          bool      `db:"is_active"`
+	CreatedAt         time.Time `db:"created_at"`
+	UpdatedAt         time.Time `db:"updated_at"`
+	PasswordChangedAt time.Time `db:"password_changed_at"`
 }
 
-func (db *DB) GetAccountByEmail(ctx context.Context, email string) (core.AuthAccount, error) {
-	const op = "postgresql.GetAccountByEmail"
-
-	var account core.AuthAccount
-	if err := db.conn.GetContext(ctx, &account, getAccountByEmailQuery, email); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return core.AuthAccount{}, fmt.Errorf("%s: %w", op, core.ErrAccountNotFound)
-		}
-		return core.AuthAccount{}, fmt.Errorf("%s: %w", op, err)
+func (a accountRow) toCore() core.Account {
+	return core.Account{
+		UserID:            a.UserID,
+		Email:             a.Email,
+		PasswordHash:      a.PasswordHash,
+		Role:              core.Role(a.Role),
+		IsActive:          a.IsActive,
+		CreatedAt:         a.CreatedAt,
+		UpdatedAt:         a.UpdatedAt,
+		PasswordChangedAt: a.PasswordChangedAt,
 	}
-
-	return account, nil
-}
-
-func (db *DB) GetAccountByUserId(ctx context.Context, userID string) (core.AuthAccount, error) {
-	const op = "postgresql.GetAccountByUserId"
-	var account core.AuthAccount
-	if err := db.conn.GetContext(ctx, &account, getAccountByUserIDQuery, userID); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return core.AuthAccount{}, fmt.Errorf("%s: %w", op, core.ErrAccountNotFound)
-		}
-		return core.AuthAccount{}, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return account, nil
-}
-
-func (db *DB) DeleteAccountByUserId(ctx context.Context, userID string) error {
-	const op = "postgresql.DeleteAccountByUserId"
-	_, err := db.conn.ExecContext(ctx, deleteAccountByUserIDQuery, userID)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-	return nil
-}
-
-func (db *DB) CreateRefreshSession(ctx context.Context, session core.RefreshSession) error {
-	const op = "postgresql.CreateRefreshSession"
-	_, err := db.conn.ExecContext(
-		ctx,
-		CreateRefreshSessionQuery,
-		session.ID,
-		session.UserID,
-		session.TokenHash,
-		session.UserAgent,
-		session.IP,
-		session.ExpiresAt,
-		session.CreatedAt,
-		session.RevokedAt)
-
-	if err != nil {
-		if isUniqueViolation(err) {
-			return fmt.Errorf("%s: %w", op, core.ErrRefreshSessionAlreadyExists)
-		}
-		return fmt.Errorf("%s: %w", op, err)
-	}
-	return nil
-}
-func (db *DB) GetRefreshSessionByTokenHash(ctx context.Context, tokenHash string) (core.RefreshSession, error) {
-	const op = "postgres.GetRefreshSessionByTokenHash"
-
-	var session core.RefreshSession
-	if err := db.conn.GetContext(ctx, &session, GetRefreshSessionByTokenHashQuery, tokenHash); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return core.RefreshSession{}, fmt.Errorf("%s: %w", op, core.ErrRefreshSessionNotFound)
-		}
-		return core.RefreshSession{}, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return session, nil
-}
-
-func (db *DB) RevokeRefreshSession(ctx context.Context, sessionID string, revokedAt time.Time) error {
-	const op = "postgres.RevokeRefreshSession"
-
-	_, err := db.conn.ExecContext(ctx, RevokeRefreshSessionQuery, sessionID, revokedAt)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	return nil
-}
-
-func (db *DB) RevokeAllRefreshSessionsByUserID(ctx context.Context, userID string, revokedAt time.Time) error {
-	const op = "postgres.RevokeAllRefreshSessionsByUserID"
-
-	_, err := db.conn.ExecContext(ctx, RevokeAllRefreshSessionsByUserIDQuery, userID, revokedAt)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	return nil
-}
-
-func isUniqueViolation(err error) bool {
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code == "23505"
-	}
-	return false
 }
 
 const (
 	createAccountQuery = `
-		insert into auth_account (
-			user_id,
-		    email,
-	        password_hash,
-		    role,
-		    is_active,
-		    created_at,
-		    updated_at,
-		    password_changed_at
-		) values ($1, $2, $3, $4, $5, $6, $7, $8)
-	`
-	getAccountByEmailQuery = `
-		select
-		    user_id,
-		    email,
-		    password_hash,
-		    role,
-		    is_active,
-		    created_at,
-		    updated_at,
-		    password_changed_at
-		from auth_account
-		where email = $1
-		limit 1
-	`
-	getAccountByUserIDQuery = `
-		select
-		    user_id,
-		    email,
-		    password_hash,
-		    role,
-		    is_active,
-		    created_at,
-		    updated_at,
-		    password_changed_at
-		from auth_account
-		where user_id = $1
-		limit 1
-	`
-	deleteAccountByUserIDQuery = `
-		delete from auth_account where user_id = $1
-	`
-	CreateRefreshSessionQuery = `
-		insert into refresh_sessions (
-		    id,
-			user_id,
-		    token_hash,
-		    user_agent,
-		    ip,
-		    expires_at,
-		    created_at,
-		    revoked_at
-		) values ($1, $2, $3, $4, $5::inet, $6, $7, $8)                          
-	`
-	GetRefreshSessionByTokenHashQuery = `
-		select
-			id,
-			user_id,
-			token_hash,
-			user_agent,
-			host(ip) as ip,
-			expires_at,
-			created_at,
-			revoked_at
-		from refresh_sessions
-		where token_hash = $1
-		limit 1
-	`
-	RevokeRefreshSessionQuery = `
-		update refresh_sessions
-		set revoked_at = $2
-		where id = $1 and revoked_at is null
-	`
-	RevokeAllRefreshSessionsByUserIDQuery = `
-		update refresh_sessions
-		set revoked_at = $2
-		where user_id = $1 and revoked_at is null
-	`
+        insert into auth_accounts (user_id, email, password_hash, role, is_active)
+        values ($1, $2, $3, $4, $5);
+    `
+	countAccountsQuery = `
+        select count(1)
+        from auth_accounts;
+    `
+	getByEmailQuery = `
+        select user_id::text, email, password_hash, role, is_active, created_at, updated_at, password_changed_at
+        from auth_accounts
+        where email = $1;
+    `
+	getByUserIDQuery = `
+        select user_id::text, email, password_hash, role, is_active, created_at, updated_at, password_changed_at
+        from auth_accounts
+        where user_id = $1;
+    `
+	deleteByUserIDQuery = `
+        delete from auth_accounts
+        where user_id = $1;
+    `
 )
+
+func (db *DB) CreateAccount(ctx context.Context, acc core.Account) error {
+	_, err := db.conn.ExecContext(
+		ctx,
+		createAccountQuery,
+		acc.UserID,
+		acc.Email,
+		acc.PasswordHash,
+		string(acc.Role),
+		acc.IsActive,
+	)
+	if err != nil {
+		return fmt.Errorf("create account: %w", err)
+	}
+	return nil
+}
+
+func (db *DB) GetByEmail(ctx context.Context, email string) (core.Account, error) {
+	var row accountRow
+	if err := db.conn.GetContext(ctx, &row, getByEmailQuery, email); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return core.Account{}, core.ErrAccountNotFound
+		}
+		return core.Account{}, fmt.Errorf("get by email: %w", err)
+	}
+	return row.toCore(), nil
+}
+
+func (r *DB) GetByUserID(ctx context.Context, userID string) (core.Account, error) {
+	var row accountRow
+	if err := r.conn.GetContext(ctx, &row, getByUserIDQuery, userID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return core.Account{}, core.ErrAccountNotFound
+		}
+		return core.Account{}, fmt.Errorf("get by user id: %w", err)
+	}
+	return row.toCore(), nil
+}
+
+func (r *DB) CountAccounts(ctx context.Context) (int, error) {
+	var count int
+	if err := r.conn.GetContext(ctx, &count, countAccountsQuery); err != nil {
+		return 0, fmt.Errorf("count accounts: %w", err)
+	}
+	return count, nil
+}
+
+func (r *DB) DeleteByUserID(ctx context.Context, userID string) error {
+	res, err := r.conn.ExecContext(ctx, deleteByUserIDQuery, userID)
+	if err != nil {
+		return fmt.Errorf("delete by user id: %w", err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete by user id affected rows: %w", err)
+	}
+	if affected == 0 {
+		return core.ErrAccountNotFound
+	}
+	return nil
+}

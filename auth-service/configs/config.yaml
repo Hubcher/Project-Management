@@ -1,8 +1,13 @@
 log_level: DEBUG
 address: ":50051"
-token_ttl: 15m
-refresh_token_ttl: 720h
+env: "local"
 db_address: "postgres://postgres:password@auth-postgres:5432/authdb?sslmode=disable"
-env: local
-jwt_issuer: "auth-service"
-jwt_secret: "super-secret-key"
+jwt:
+  secret: "super-secret-key"
+  issuer: "auth-service"
+  audience: "gateway"
+  ttl: 24h
+bootstrap_admin:
+  enabled: true
+  email: "admin@example.com"
+  password: "Admin123!"

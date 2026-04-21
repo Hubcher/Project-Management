@@ -1,52 +1,40 @@
 package config
 
 import (
-	"log"
-	"time"
+    "log"
+    "time"
 
-	"github.com/ilyakaznacheev/cleanenv"
+    "github.com/ilyakaznacheev/cleanenv"
 )
 
-type GRPCConfig struct {
-	Address string        `yaml:"address" env:"GRPC_ADDRESS" env-default:":50052"`
-	Timeout time.Duration `yaml:"timeout" env:"GRPC_TIMEOUT" env-default:"5s"`
+type JWT struct {
+    Secret   string        `yaml:"secret"`
+    Issuer   string        `yaml:"issuer"`
+    Audience string        `yaml:"audience"`
+    TTL      time.Duration `yaml:"ttl"`
 }
 
-type JWTConfig struct {
-	Secret string        `yaml:"secret" env:"JWT_SECRET" env-required:"true"`
-	TTL    time.Duration `yaml:"ttl" env:"JWT_TTL" env-default:"15m"`
+type BootstrapAdmin struct {
+    Enabled  bool   `yaml:"enabled" env:"BOOTSTRAP_ADMIN_ENABLED" env-default:"true"`
+    Email    string `yaml:"email" env:"BOOTSTRAP_ADMIN_EMAIL" env-default:"admin@example.com"`
+    Password string `yaml:"password" env:"BOOTSTRAP_ADMIN_PASSWORD" env-default:"Admin123!"`
 }
 
 type Config struct {
-	LogLevel           string     `yaml:"log_level" env:"LOG_LEVEL" env-default:"INFO"`
-	GRPC               GRPCConfig `yaml:"grpc"`
-	JWT                JWTConfig  `yaml:"jwt"`
-	UserServiceAddress string     `yaml:"user_service_address" env:"USER_SERVICE_ADDRESS" env-default:"user-service:50051"`
+    LogLevel       string         `yaml:"log_level" env:"LOG_LEVEL" env-default:"DEBUG"`
+    Address        string         `yaml:"address" env:"AUTH_ADDRESS" env-default:":50051"`
+    Env            string         `yaml:"env" env:"ENV" env-default:"local"`
+    DBAddress      string         `yaml:"db_address" env:"DB_ADDRESS" env-default:"postgres://postgres:password@auth-postgres:5432/authdb?sslmode=disable"`
+    JWT            JWT            `yaml:"jwt"`
+    BootstrapAdmin BootstrapAdmin `yaml:"bootstrap_admin"`
 }
 
 func MustLoad(configPath string) *Config {
-	var cfg Config
+    var cfg Config
 
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		log.Fatalf("cannot read config: %v", err)
-	}
+    if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+        log.Fatalf("cannot read config %q: %s", configPath, err)
+    }
 
-	return &cfg
+    return &cfg
 }
-
-//type Config struct {
-//	LogLevel  string        `yaml:"log_level" env:"LOG_LEVEL" env-default:"debug"`
-//	Address   string        `yaml:"address" env:"PROJECT_ADDRESS" env-default:":8080"`
-//	Env       string        `yaml:"env" env:"local" env-default:"local"`
-//	DBAddress string        `yaml:"db_address" env:"DB_ADDRESS" env-default:"postgres://postgres:password@auth-postgres:5432/projectpb?sslmode=disable"`
-//	TokenTTL  time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" env-required:"true"`
-//}
-//
-//func MustLoad(configPath string) *Config {
-//	var cfg Config
-//
-//	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-//		log.Fatalf("cannot read config %q: %s", configPath, err)
-//	}
-//	return &cfg
-//}

@@ -1,5 +1,3 @@
-create extension if not exists pgcrypto;
-
 create table if not exists auth_accounts (
     user_id uuid primary key,
     email text not null unique,

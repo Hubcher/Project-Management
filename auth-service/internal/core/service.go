@@ -1,186 +1,197 @@
 package core
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"log/slog"
-	"strings"
-	"unicode/utf8"
+    "context"
+    "errors"
+    "log/slog"
+    "strings"
 
-	"github.com/google/uuid"
+    "github.com/google/uuid"
 )
 
 type Service struct {
-	log    *slog.Logger
-	users  UserProvider
-	hasher PasswordHasher
-	tokens TokenManager
+    log  *slog.Logger
+    repo AuthRepository
+    tm   TokenManager
+    pm   PasswordManager
 }
 
-// New returns a new instance of the Auth service
-func New(log *slog.Logger, users UserProvider, hasher PasswordHasher, tokens TokenManager) *Service {
-	return &Service{
-		log:    log,
-		users:  users,
-		hasher: hasher,
-		tokens: tokens,
-	}
+func NewService(log *slog.Logger, repo AuthRepository, tm TokenManager, pm PasswordManager) *Service {
+    return &Service{
+        log:  log,
+        repo: repo,
+        tm:   tm,
+        pm:   pm,
+    }
 }
 
-func (s *Service) Register(ctx context.Context, name, email, password string) (User, error) {
-	const op = "auth.RegisterNewUser"
-
-	log := s.log.With(
-		slog.String("op", op),
-		slog.String("email", email))
-
-	log.Info("registering user")
-
-	// TODO: Сделать валидацию в отдельную функцию
-	// -----------------------------------------
-	name = strings.TrimSpace(name)
-	email = normalizeEmail(email)
-
-	if name == "" || email == "" {
-		return User{}, ErrInvalidArgument
-	}
-	if !strings.Contains(email, "@") {
-		return User{}, ErrInvalidArgument
-	}
-	if utf8.RuneCountInString(password) < 8 {
-		return User{}, ErrWeakPassword
-	}
-	/// ----------------------------------------
-
-	//passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	//if err != nil {
-	//	log.Error("failed to generate password hash", err)
-	//	return User{}, fmt.Errorf("%s: %w", op, err)
-	//}
-
-	passHash, err := s.hasher.Hash(password)
-	if err != nil {
-		s.log.Error("failed to generate password hash", "error", err)
-		return User{}, fmt.Errorf("%s: %w", op, err)
-	}
-
-	input := CreateUserInput{
-		ID:           uuid.NewString(),
-		Name:         name,
-		Email:        email,
-		PasswordHash: passHash,
-		Role:         RoleUser,
-	}
-
-	user, err := s.users.CreateUser(ctx, input)
-	if err != nil {
-		s.log.Error("failed to create user", "error", err)
-		return User{}, fmt.Errorf("%s: %w", op, err)
-	}
-
-	//if err != nil {
-	//	//	if errors.Is(err, ErrUserExists) {
-	//	//		log.Warn("user already exists", "error", err)
-	//	//
-	//	//		return "", fmt.Errorf("%s: %w", op, ErrUserExists)
-	//	//	}
-	//	//
-	//	//	log.Error("failed to save user", err)
-	//	//
-	//	//	return "", fmt.Errorf("%s: %w", op, err)
-	//	//}
-
-	log.Info("successfully saved user")
-
-	return user, nil
-
+func (s *Service) Register(ctx context.Context, email, password string) (string, error) {
+    return s.createAccount(ctx, email, password, RoleUser)
 }
 
-// Login checks if user with give credentials exists in the systems
-// If user exists, but password is incorrect, returns error
-// If user doesn't exist, returns error
+func (s *Service) RegisterWithRole(ctx context.Context, email, password string, role Role) (string, error) {
+    return s.createAccount(ctx, email, password, role)
+}
+
+func (s *Service) EnsureAdmin(ctx context.Context, email, password string) error {
+    const op = "auth.Service.EnsureAdmin"
+    log := s.log.With(slog.String("op", op), slog.String("email", email))
+
+    email = strings.TrimSpace(strings.ToLower(email))
+    password = strings.TrimSpace(password)
+    if email == "" || password == "" {
+        return ErrInvalidArgument
+    }
+
+    acc, err := s.repo.GetByEmail(ctx, email)
+    if err == nil {
+        if acc.Role != RoleAdmin {
+            log.Error("bootstrap admin email already exists with non-admin role")
+            return ErrForbidden
+        }
+        log.Info("bootstrap admin already exists, skipping")
+        return nil
+    }
+    if !errors.Is(err, ErrAccountNotFound) {
+        return err
+    }
+
+    _, err = s.createAccount(ctx, email, password, RoleAdmin)
+    if err != nil {
+        return err
+    }
+
+    log.Info("bootstrap admin created")
+    return nil
+}
+
+func (s *Service) createAccount(ctx context.Context, email, password string, role Role) (string, error) {
+    const op = "auth.Service.createAccount"
+    log := s.log.With(
+        slog.String("op", op),
+        slog.String("email", email),
+        slog.String("role", string(role)),
+    )
+
+    email = strings.TrimSpace(strings.ToLower(email))
+    password = strings.TrimSpace(password)
+    role = normalizeRole(role)
+
+    if email == "" || password == "" {
+        return "", ErrInvalidArgument
+    }
+    if role != RoleUser && role != RoleAdmin {
+        return "", ErrInvalidArgument
+    }
+
+    if _, err := s.repo.GetByEmail(ctx, email); err == nil {
+        log.Info("user with this email already exists")
+        return "", ErrAccountExists
+    } else if !errors.Is(err, ErrAccountNotFound) {
+        log.Error("failed to check existing account", "error", err)
+        return "", err
+    }
+
+    passHash, err := s.pm.Hash(password)
+    if err != nil {
+        log.Error("failed to generate password hash", "error", err)
+        return "", err
+    }
+
+    id := uuid.NewString()
+    acc := Account{
+        UserID:       id,
+        Email:        email,
+        PasswordHash: passHash,
+        Role:         role,
+        IsActive:     true,
+    }
+
+    if err = s.repo.CreateAccount(ctx, acc); err != nil {
+        return "", err
+    }
+
+    return id, nil
+}
+
 func (s *Service) Login(ctx context.Context, email, password string) (string, error) {
-	const op = "auth.Login"
-	log := s.log.With(
-		slog.String("op", op),
-		slog.String("email", email))
+    const op = "auth.Service.Login"
+    log := s.log.With(
+        slog.String("op", op),
+        slog.String("email", email),
+    )
 
-	// TODO: сделать валидатор
-	email = normilizeEmail(email)
-	if email == "" || password == "" {
-		return "", ErrInvalidArgument
-	}
+    log.Info("checking user")
 
-	s.log.Info("attempting to login user")
+    email = strings.TrimSpace(strings.ToLower(email))
+    password = strings.TrimSpace(password)
 
-	user, err := s.users.GetUserByEmail(ctx, email)
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
-			s.log.Warn("user not found", "error", err)
-			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
-		}
-		s.log.Error("failed to get user", "error", err)
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
+    if email == "" || password == "" {
+        return "", ErrInvalidArgument
+    }
 
-	if err = s.hasher.Compare(user.PassHash, password); err != nil {
-		s.log.Info("invalid credentials", err)
-		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
-	}
+    acc, err := s.repo.GetByEmail(ctx, email)
+    if err != nil {
+        log.Error("failed to get user by email", "error", err)
+        return "", ErrInvalidCredentials
+    }
 
-	token, err := s.tokens.Generate(Claims{
-		UserID: user.ID,
-		Email:  email,
-		Role:   user.Role,
-	})
-	if err != nil {
-		s.log.Error("failed to sign token", "error", err)
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
-	return token, nil
+    if !acc.IsActive {
+        return "", ErrInactiveAccount
+    }
 
-	//user, err := s.db.User(ctx, email)
-	//if err != nil {
-	//	if errors.Is(err, ErrUserNotFound) {
-	//		s.log.Warn("user not found")
-	//		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
-	//	}
-	//
-	//	s.log.Error("failed to get user", "error", err)
-	//
-	//	return "", fmt.Errorf("%s: %w", op, err)
-	//}
-	//
-	//if err = bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
-	//	s.log.Info("invalid credentials", err)
-	//
-	//	return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
-	//}
-	//
-	//app, err := s.AppProvider.App(ctx, appId)
-	//if err != nil {
-	//	return "", fmt.Errorf("%s: %w", op, err)
-	//}
-	//
-	//s.log.Info("user logged in successfully")
-	//
-	//claims := jwt.MapClaims{
-	//	"uid":    user.ID,
-	//	"email":  email,
-	//	"exp":    time.Now().Add(s.tokenTTL).Unix(),
-	//	"app_id": appId,
-	//}
-	//
-	//token := jwt.NewWithClaims(
-	//	jwt.SigningMethodHS256,
-	//	claims)
-	//
-	//signedToken, err := token.SignedString([]byte(app.Secret))
-	//if err != nil {
-	//	s.log.Error("failed to sign token", "error", err)
-	//	return "", err
-	//}
-	//
-	//return signedToken, nil
+    if err = s.pm.Compare(acc.PasswordHash, password); err != nil {
+        log.Error("failed to compare password", "error", err)
+        return "", ErrInvalidCredentials
+    }
+
+    return s.tm.Generate(Claims{
+        UserID: acc.UserID,
+        Role:   acc.Role,
+        Email:  acc.Email,
+    })
+}
+
+func (s *Service) Validate(ctx context.Context, token string) (Claims, error) {
+    token = strings.TrimSpace(token)
+    if token == "" {
+        return Claims{}, ErrInvalidToken
+    }
+
+    claims, err := s.tm.Parse(token)
+    if err != nil {
+        return Claims{}, err
+    }
+
+    acc, err := s.repo.GetByUserID(ctx, claims.UserID)
+    if err != nil {
+        return Claims{}, ErrInvalidToken
+    }
+
+    if !acc.IsActive {
+        return Claims{}, ErrInactiveAccount
+    }
+
+    return Claims{
+        UserID: acc.UserID,
+        Role:   acc.Role,
+        Email:  acc.Email,
+    }, nil
+}
+
+func (s *Service) DeleteCredentials(ctx context.Context, userID string) error {
+    userID = strings.TrimSpace(userID)
+    if userID == "" {
+        return ErrInvalidArgument
+    }
+    return s.repo.DeleteByUserID(ctx, userID)
+}
+
+func normalizeRole(role Role) Role {
+    switch strings.ToLower(strings.TrimSpace(string(role))) {
+    case string(RoleAdmin):
+        return RoleAdmin
+    default:
+        return RoleUser
+    }
 }
