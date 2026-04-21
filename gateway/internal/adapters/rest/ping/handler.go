@@ -12,11 +12,16 @@ type PingResponse struct {
 	Replies map[string]string `json:"replies"`
 }
 
+// NewPingHandler godoc
+// @Summary Check service availability
+// @Description Calls downstream services and returns their availability status from the gateway perspective.
+// @Tags system
+// @Produce json
+// @Success 200 {object} PingResponse
+// @Router /api/ping [get]
 func NewPingHandler(log *slog.Logger, pingers map[string]core.Pinger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		reply := PingResponse{
-			make(map[string]string),
-		}
+		reply := PingResponse{Replies: make(map[string]string)}
 
 		for name, pinger := range pingers {
 			if err := pinger.Ping(r.Context()); err != nil {

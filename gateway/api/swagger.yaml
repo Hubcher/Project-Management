@@ -1,0 +1,2430 @@
+basePath: /
+definitions:
+  auth.AuthUserResponse:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: string
+    type: object
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/auth.AuthUserResponse'
+    type: object
+  auth.ProfileResponse:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      birth_date:
+        type: string
+      created_at:
+        type: string
+      department:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      middle_name:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  auth.RegisterRequest:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      birth_date:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      middle_name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+    type: object
+  auth.RegisterResponse:
+    properties:
+      profile:
+        $ref: '#/definitions/auth.ProfileResponse'
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/auth.AuthUserResponse'
+    type: object
+  httpx.ErrorResponse:
+    properties:
+      error:
+        example: access denied
+        type: string
+    type: object
+  ping.PingResponse:
+    properties:
+      replies:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  project.CreateProjectEventRequest:
+    properties:
+      actual_date:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      planned_date:
+        type: string
+      stage_id:
+        type: string
+      status:
+        type: string
+    type: object
+  project.CreateProjectMemberRequest:
+    properties:
+      role_in_project:
+        type: string
+      user_id:
+        type: string
+    type: object
+  project.CreateProjectRequest:
+    properties:
+      actual_deadline:
+        type: string
+      actual_start_date:
+        type: string
+      contract_number:
+        type: string
+      customer_name:
+        type: string
+      description:
+        type: string
+      manager_id:
+        type: string
+      name:
+        type: string
+      planned_budget:
+        type: string
+      planned_deadline:
+        type: string
+      planned_start_date:
+        type: string
+      project_code:
+        type: string
+      status:
+        type: string
+    type: object
+  project.CreateProjectStageRequest:
+    properties:
+      actual_end_date:
+        type: string
+      actual_start_date:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      planned_end_date:
+        type: string
+      planned_expense:
+        type: string
+      planned_income:
+        type: string
+      planned_start_date:
+        type: string
+      sequence_number:
+        type: integer
+      status:
+        type: string
+    type: object
+  project.ListProjectEventsResponse:
+    properties:
+      events:
+        items:
+          $ref: '#/definitions/project.ProjectEventResponse'
+        type: array
+    type: object
+  project.ListProjectMembersResponse:
+    properties:
+      members:
+        items:
+          $ref: '#/definitions/project.ProjectMemberResponse'
+        type: array
+    type: object
+  project.ListProjectStagesResponse:
+    properties:
+      stages:
+        items:
+          $ref: '#/definitions/project.ProjectStageResponse'
+        type: array
+    type: object
+  project.ListProjectsResponse:
+    properties:
+      projects:
+        items:
+          $ref: '#/definitions/project.ProjectResponse'
+        type: array
+    type: object
+  project.ProjectEventResponse:
+    properties:
+      actual_date:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      planned_date:
+        type: string
+      project_id:
+        type: string
+      stage_id:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  project.ProjectMemberResponse:
+    properties:
+      id:
+        type: string
+      is_active:
+        type: boolean
+      joined_at:
+        type: string
+      left_at:
+        type: string
+      project_id:
+        type: string
+      role_in_project:
+        type: string
+      user_id:
+        type: string
+    type: object
+  project.ProjectResponse:
+    properties:
+      actual_deadline:
+        type: string
+      actual_start_date:
+        type: string
+      contract_number:
+        type: string
+      created_at:
+        type: string
+      customer_name:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      manager_id:
+        type: string
+      name:
+        type: string
+      planned_budget:
+        type: string
+      planned_deadline:
+        type: string
+      planned_start_date:
+        type: string
+      project_code:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  project.ProjectStageResponse:
+    properties:
+      actual_end_date:
+        type: string
+      actual_start_date:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      planned_end_date:
+        type: string
+      planned_expense:
+        type: string
+      planned_income:
+        type: string
+      planned_start_date:
+        type: string
+      project_id:
+        type: string
+      sequence_number:
+        type: integer
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  project.UpdateProjectEventRequest:
+    properties:
+      actual_date:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      planned_date:
+        type: string
+      stage_id:
+        type: string
+      status:
+        type: string
+    type: object
+  project.UpdateProjectMemberRequest:
+    properties:
+      is_active:
+        type: boolean
+      left_at:
+        type: string
+      role_in_project:
+        type: string
+    type: object
+  project.UpdateProjectRequest:
+    properties:
+      actual_deadline:
+        type: string
+      actual_start_date:
+        type: string
+      contract_number:
+        type: string
+      customer_name:
+        type: string
+      description:
+        type: string
+      manager_id:
+        type: string
+      name:
+        type: string
+      planned_budget:
+        type: string
+      planned_deadline:
+        type: string
+      planned_start_date:
+        type: string
+      project_code:
+        type: string
+      status:
+        type: string
+    type: object
+  project.UpdateProjectStageRequest:
+    properties:
+      actual_end_date:
+        type: string
+      actual_start_date:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      planned_end_date:
+        type: string
+      planned_expense:
+        type: string
+      planned_income:
+        type: string
+      planned_start_date:
+        type: string
+      sequence_number:
+        type: integer
+      status:
+        type: string
+    type: object
+  report.CreateDailyReportCommentRequest:
+    properties:
+      comment:
+        type: string
+    type: object
+  report.CreateDailyReportEntryRequest:
+    properties:
+      description:
+        type: string
+      hours_spent:
+        type: string
+      project_id:
+        type: string
+      stage_id:
+        type: string
+      work_type:
+        type: string
+    type: object
+  report.CreateDailyReportRequest:
+    properties:
+      report_date:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+      user_id:
+        type: string
+    type: object
+  report.DailyReportCommentResponse:
+    properties:
+      author_user_id:
+        type: string
+      comment:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      report_id:
+        type: string
+    type: object
+  report.DailyReportEntryResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      hours_spent:
+        type: string
+      id:
+        type: string
+      project_id:
+        type: string
+      report_id:
+        type: string
+      stage_id:
+        type: string
+      updated_at:
+        type: string
+      work_type:
+        type: string
+    type: object
+  report.DailyReportResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      report_date:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+      total_hours:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  report.ListDailyReportCommentsResponse:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/report.DailyReportCommentResponse'
+        type: array
+    type: object
+  report.ListDailyReportEntriesResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/report.DailyReportEntryResponse'
+        type: array
+    type: object
+  report.ListDailyReportsResponse:
+    properties:
+      reports:
+        items:
+          $ref: '#/definitions/report.DailyReportResponse'
+        type: array
+    type: object
+  report.UpdateDailyReportCommentRequest:
+    properties:
+      comment:
+        type: string
+    type: object
+  report.UpdateDailyReportEntryRequest:
+    properties:
+      description:
+        type: string
+      hours_spent:
+        type: string
+      project_id:
+        type: string
+      stage_id:
+        type: string
+      work_type:
+        type: string
+    type: object
+  report.UpdateDailyReportRequest:
+    properties:
+      status:
+        type: string
+      summary:
+        type: string
+    type: object
+  user.CreateUserRequest:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      birth_date:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      middle_name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+      role:
+        type: string
+    type: object
+  user.ListUsersResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/user.UserResponse'
+        type: array
+    type: object
+  user.ManagedUserResponse:
+    properties:
+      email:
+        type: string
+      profile:
+        $ref: '#/definitions/user.UserResponse'
+      role:
+        type: string
+    type: object
+  user.UpdateUserRequest:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      birth_date:
+        type: string
+      department:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      middle_name:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+    type: object
+  user.UserResponse:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      birth_date:
+        type: string
+      created_at:
+        type: string
+      department:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      middle_name:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: localhost:28080
+info:
+  contact: {}
+  description: Public REST API exposed by the gateway. Internal microservices communicate
+    only over gRPC and are intentionally omitted from this specification.
+  title: Project Management Gateway API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user by email and password and returns a JWT access
+        token.
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      summary: Login
+      tags:
+      - auth
+  /api/auth/me:
+    get:
+      description: Returns JWT claims of the currently authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthUserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current auth user
+      tags:
+      - auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a regular user account and returns a JWT access token.
+      parameters:
+      - description: Registration payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      summary: Register a user
+      tags:
+      - auth
+  /api/ping:
+    get:
+      description: Calls downstream services and returns their availability status
+        from the gateway perspective.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ping.PingResponse'
+      summary: Check service availability
+      tags:
+      - system
+  /api/project-events/{id}:
+    delete:
+      description: Deletes a project event. Accessible to administrators and the project
+        manager.
+      parameters:
+      - description: Project event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete project event
+      tags:
+      - project-events
+    get:
+      description: Returns a project event by ID. Accessible to administrators, the
+        project manager, and active project members.
+      parameters:
+      - description: Project event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ProjectEventResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get project event
+      tags:
+      - project-events
+    put:
+      consumes:
+      - application/json
+      description: Updates a project event. Accessible to administrators and the project
+        manager.
+      parameters:
+      - description: Project event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Project event update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/project.UpdateProjectEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ProjectEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update project event
+      tags:
+      - project-events
+  /api/project-members/{id}:
+    delete:
+      description: Deletes a project member. Accessible to administrators and the
+        project manager.
+      parameters:
+      - description: Project member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete project member
+      tags:
+      - project-members
+    get:
+      description: Returns a project member by ID. Accessible to administrators, the
+        project manager, and active project members.
+      parameters:
+      - description: Project member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ProjectMemberResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get project member
+      tags:
+      - project-members
+    put:
+      consumes:
+      - application/json
+      description: Updates project member attributes. Accessible to administrators
+        and the project manager.
+      parameters:
+      - description: Project member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Project member update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/project.UpdateProjectMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ProjectMemberResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update project member
+      tags:
+      - project-members
+  /api/project-stages/{id}:
+    delete:
+      description: Deletes a project stage. Accessible to administrators and the project
+        manager.
+      parameters:
+      - description: Project stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete project stage
+      tags:
+      - project-stages
+    get:
+      description: Returns a project stage by ID. Accessible to administrators, the
+        project manager, and active project members.
+      parameters:
+      - description: Project stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ProjectStageResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get project stage
+      tags:
+      - project-stages
+    put:
+      consumes:
+      - application/json
+      description: Updates a project stage. Accessible to administrators and the project
+        manager.
+      parameters:
+      - description: Project stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Project stage update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/project.UpdateProjectStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ProjectStageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update project stage
+      tags:
+      - project-stages
+  /api/projects:
+    get:
+      description: Returns projects visible to the caller. Administrators may use
+        the participant filter, regular users see only their own related projects.
+      parameters:
+      - description: Participant user ID filter
+        in: query
+        name: participant_user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ListProjectsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List projects
+      tags:
+      - projects
+    post:
+      consumes:
+      - application/json
+      description: Creates a project. Administrators may assign any manager, regular
+        users may create projects only for themselves.
+      parameters:
+      - description: Project payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/project.CreateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/project.ProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create project
+      tags:
+      - projects
+  /api/projects/{id}:
+    delete:
+      description: Deletes a project. Accessible to administrators and the current
+        project manager.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete project
+      tags:
+      - projects
+    get:
+      description: Returns a project by ID. Accessible to administrators, the project
+        manager, and active project members.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ProjectResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get project
+      tags:
+      - projects
+    put:
+      consumes:
+      - application/json
+      description: Updates a project. Accessible to administrators and the current
+        project manager.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Project update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/project.UpdateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update project
+      tags:
+      - projects
+  /api/projects/{projectId}/events:
+    get:
+      description: Returns project events. Accessible to administrators, the project
+        manager, and active project members.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ListProjectEventsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List project events
+      tags:
+      - project-events
+    post:
+      consumes:
+      - application/json
+      description: Creates a project event. Accessible to administrators and the project
+        manager.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Project event payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/project.CreateProjectEventRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/project.ProjectEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create project event
+      tags:
+      - project-events
+  /api/projects/{projectId}/members:
+    get:
+      description: Returns project members. Accessible to administrators, the project
+        manager, and active project members.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ListProjectMembersResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List project members
+      tags:
+      - project-members
+    post:
+      consumes:
+      - application/json
+      description: Adds a user to a project team. Accessible to administrators and
+        the project manager.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Project member payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/project.CreateProjectMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/project.ProjectMemberResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add project member
+      tags:
+      - project-members
+  /api/projects/{projectId}/stages:
+    get:
+      description: Returns all stages of a project. Accessible to administrators,
+        the project manager, and active project members.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/project.ListProjectStagesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List project stages
+      tags:
+      - project-stages
+    post:
+      consumes:
+      - application/json
+      description: Creates a stage inside a project. Accessible to administrators
+        and the project manager.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Project stage payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/project.CreateProjectStageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/project.ProjectStageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create project stage
+      tags:
+      - project-stages
+  /api/report-comments/{id}:
+    delete:
+      description: Deletes a daily report comment. Accessible to the comment author
+        and administrators.
+      parameters:
+      - description: Daily report comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete daily report comment
+      tags:
+      - report-comments
+    get:
+      description: Returns a daily report comment by ID. Accessible to users who can
+        read the parent report.
+      parameters:
+      - description: Daily report comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.DailyReportCommentResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get daily report comment
+      tags:
+      - report-comments
+    put:
+      consumes:
+      - application/json
+      description: Updates a daily report comment. Accessible to the comment author
+        and administrators.
+      parameters:
+      - description: Daily report comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Daily report comment update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/report.UpdateDailyReportCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.DailyReportCommentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update daily report comment
+      tags:
+      - report-comments
+  /api/report-entries/{id}:
+    delete:
+      description: Deletes a daily report entry. Accessible to the report author while
+        the parent report remains editable.
+      parameters:
+      - description: Daily report entry ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete daily report entry
+      tags:
+      - report-entries
+    get:
+      description: Returns a daily report entry by ID. Accessible to the report author,
+        administrators, and reviewers with access to the parent report.
+      parameters:
+      - description: Daily report entry ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.DailyReportEntryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get daily report entry
+      tags:
+      - report-entries
+    put:
+      consumes:
+      - application/json
+      description: Updates a daily report entry. Accessible to the report author while
+        the parent report remains editable.
+      parameters:
+      - description: Daily report entry ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Daily report entry update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/report.UpdateDailyReportEntryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.DailyReportEntryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update daily report entry
+      tags:
+      - report-entries
+  /api/reports:
+    get:
+      description: Returns daily reports visible to the caller. Regular users list
+        their own reports, managers may request `scope=review` to see reviewable reports,
+        and administrators can list all reports.
+      parameters:
+      - description: Listing scope. Use `self` for own reports or `review` for manager
+          review queue.
+        in: query
+        name: scope
+        type: string
+      - description: User ID filter. Available to administrators, or must match the
+          current user for `scope=self`.
+        in: query
+        name: user_id
+        type: string
+      - description: Report status filter
+        in: query
+        name: status
+        type: string
+      - description: Lower bound for report date in YYYY-MM-DD format
+        in: query
+        name: date_from
+        type: string
+      - description: Upper bound for report date in YYYY-MM-DD format
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.ListDailyReportsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List daily reports
+      tags:
+      - reports
+    post:
+      consumes:
+      - application/json
+      description: Creates a daily report. Regular users can create reports only for
+        themselves, administrators may specify another user via `user_id`.
+      parameters:
+      - description: Daily report payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/report.CreateDailyReportRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/report.DailyReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create daily report
+      tags:
+      - reports
+  /api/reports/{id}:
+    delete:
+      description: Deletes a daily report. Accessible to the report author and administrators.
+      parameters:
+      - description: Daily report ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete daily report
+      tags:
+      - reports
+    get:
+      description: Returns a daily report by ID. Accessible to the report author,
+        administrators, and project managers reviewing related project work.
+      parameters:
+      - description: Daily report ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.DailyReportResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get daily report
+      tags:
+      - reports
+    put:
+      consumes:
+      - application/json
+      description: Updates a daily report. Authors may edit draft or submitted report
+        fields they own, while administrators and reviewers may set review statuses
+        such as `approved` or `rejected`.
+      parameters:
+      - description: Daily report ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Daily report update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/report.UpdateDailyReportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.DailyReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update daily report
+      tags:
+      - reports
+  /api/reports/{reportId}/comments:
+    get:
+      description: Returns comments attached to a daily report. Accessible to users
+        who can read the report.
+      parameters:
+      - description: Daily report ID
+        in: path
+        name: reportId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.ListDailyReportCommentsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List daily report comments
+      tags:
+      - report-comments
+    post:
+      consumes:
+      - application/json
+      description: Adds a comment to a daily report. Accessible to users who can read
+        the report, including the author, administrators, and reviewers.
+      parameters:
+      - description: Daily report ID
+        in: path
+        name: reportId
+        required: true
+        type: string
+      - description: Daily report comment payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/report.CreateDailyReportCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/report.DailyReportCommentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create daily report comment
+      tags:
+      - report-comments
+  /api/reports/{reportId}/entries:
+    get:
+      description: Returns all entries that belong to a daily report. Accessible to
+        the report author, administrators, and reviewers with access to the report.
+      parameters:
+      - description: Daily report ID
+        in: path
+        name: reportId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/report.ListDailyReportEntriesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List daily report entries
+      tags:
+      - report-entries
+    post:
+      consumes:
+      - application/json
+      description: Adds a worklog entry to a daily report. Accessible to the report
+        author while the report remains editable.
+      parameters:
+      - description: Daily report ID
+        in: path
+        name: reportId
+        required: true
+        type: string
+      - description: Daily report entry payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/report.CreateDailyReportEntryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/report.DailyReportEntryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create daily report entry
+      tags:
+      - report-entries
+  /api/users:
+    get:
+      description: Returns all user profiles. This endpoint is available only to administrators.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.ListUsersResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List user profiles
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user or administrator account. This endpoint is available
+        only to administrators.
+      parameters:
+      - description: Managed user payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.ManagedUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a managed user
+      tags:
+      - users
+  /api/users/{id}:
+    delete:
+      description: Deletes a user in both auth-service and user-service. This endpoint
+        is available only to administrators.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - users
+    get:
+      description: Returns a user profile by ID. Administrators can read any profile,
+        regular users can read only their own profile.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates a user profile. Administrators can update any profile,
+        regular users can update only their own profile.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Profile update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - users
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: JWT access token. Use the `Bearer {token}` format.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

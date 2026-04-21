@@ -2,11 +2,16 @@ package user
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
-	userpb "github.com/Hubcher/project-management/contracts/gen/proto/user"
+	userpb "github.com/Hubcher/project-management/contracts/gen/go/user"
+	"github.com/Hubcher/project-management/gateway/internal/core"
+	timestamp "github.com/golang/protobuf/ptypes/timestamp"
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,13 +24,26 @@ type Client struct {
 	conn   *grpc.ClientConn
 }
 
-func NewClient(address string, log *slog.Logger) (*Client, error) {
+type profileEnvelope struct {
+	FirstName  string `json:"first_name"`
+	LastName   string `json:"last_name"`
+	MiddleName string `json:"middle_name,omitempty"`
+	BirthDate  string `json:"birth_date,omitempty"`
+	Phone      string `json:"phone,omitempty"`
+	Department string `json:"department,omitempty"`
+	Position   string `json:"position,omitempty"`
+	AvatarURL  string `json:"avatar_url,omitempty"`
+	Bio        string `json:"bio,omitempty"`
+	UpdatedAt  string `json:"updated_at,omitempty"`
+}
+
+func NewClient(address string) (*Client, error) {
 	conn, err := grpc.NewClient(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithConnectParams(grpc.ConnectParams{
 			Backoff: backoff.Config{
-				BaseDelay:  1 * time.Second,
+				BaseDelay:  time.Second,
 				Multiplier: 1.6,
 				MaxDelay:   5 * time.Second,
 			},
@@ -38,10 +56,13 @@ func NewClient(address string, log *slog.Logger) (*Client, error) {
 	conn.Connect()
 
 	return &Client{
-		log:    log,
 		client: userpb.NewUserServiceClient(conn),
 		conn:   conn,
 	}, nil
+}
+
+func (c *Client) Close() error {
+	return c.conn.Close()
 }
 
 func (c *Client) Ping(ctx context.Context) error {
@@ -49,70 +70,120 @@ func (c *Client) Ping(ctx context.Context) error {
 	return err
 }
 
-func (c *Client) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.User, error) {
-	if req == nil {
-		return nil, errors.New("create user request is empty")
-	}
-
-	resp, err := c.client.CreateUser(ctx, req)
+func (c *Client) CreateUser(ctx context.Context, input core.CreateUserInput) (*core.UserProfile, error) {
+	payload, err := encodeProfile(input.FirstName, input.LastName, input.MiddleName, input.BirthDate, input.Phone, input.Department, input.Position, input.AvatarURL, input.Bio, "")
 	if err != nil {
-		c.log.Error("CreateUser failed", "error", err)
 		return nil, err
 	}
 
-	return resp, nil
+	resp, err := c.client.CreateUser(ctx, &userpb.CreateUserRequest{
+		Id:   input.ID,
+		Name: payload,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fromProtoUser(resp)
 }
 
-func (c *Client) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*userpb.User, error) {
-	if req == nil {
-		return nil, errors.New("get user request is empty")
-	}
-	resp, err := c.client.GetUser(ctx, req)
+func (c *Client) GetUser(ctx context.Context, id string) (*core.UserProfile, error) {
+	resp, err := c.client.GetUserById(ctx, &userpb.GetUserByIdRequest{Id: id})
 	if err != nil {
-		c.log.Error("GetUser failed", "error", err)
+		return nil, err
+	}
+	return fromProtoUser(resp)
+}
+
+func (c *Client) ListUsers(ctx context.Context) ([]core.UserProfile, error) {
+	resp, err := c.client.ListUsers(ctx, &userpb.ListUsersRequest{})
+	if err != nil {
 		return nil, err
 	}
 
-	return resp, nil
+	users := make([]core.UserProfile, 0, len(resp.GetUsers()))
+	for _, user := range resp.GetUsers() {
+		profile, convErr := fromProtoUser(user)
+		if convErr != nil {
+			return nil, convErr
+		}
+		users = append(users, *profile)
+	}
+	return users, nil
 }
 
-func (c *Client) ListUsers(ctx context.Context, req *userpb.ListUsersRequest) (*userpb.ListUsersResponse, error) {
-	if req == nil {
-		return nil, errors.New("list users request is empty")
-	}
-	resp, err := c.client.ListUsers(ctx, req)
+func (c *Client) UpdateUser(ctx context.Context, input core.UpdateUserInput) (*core.UserProfile, error) {
+	payload, err := encodeProfile(input.FirstName, input.LastName, input.MiddleName, input.BirthDate, input.Phone, input.Department, input.Position, input.AvatarURL, input.Bio, "")
 	if err != nil {
-		c.log.Error("ListUsers failed", "error", err)
 		return nil, err
 	}
 
-	return resp, nil
-}
-
-func (c *Client) UpdateUser(ctx context.Context, req *userpb.UpdateUserRequest) (*userpb.User, error) {
-	if req == nil {
-		return nil, errors.New("update user request is empty")
-	}
-	resp, err := c.client.UpdateUser(ctx, req)
+	resp, err := c.client.UpdateUser(ctx, &userpb.UpdateUserRequest{
+		Id:   input.ID,
+		Name: &wrappers.StringValue{Value: payload},
+	})
 	if err != nil {
-		c.log.Error("UpdateUser failed", "error", err)
 		return nil, err
 	}
-	return resp, nil
+	return fromProtoUser(resp)
 }
 
-func (c *Client) DeleteUser(ctx context.Context, req *userpb.DeleteUserRequest) (*emptypb.Empty, error) {
-	if req == nil {
-		return nil, errors.New("delete user request is empty")
-	}
-	resp, err := c.client.DeleteUser(ctx, req)
+func (c *Client) DeleteUser(ctx context.Context, id string) error {
+	_, err := c.client.DeleteUser(ctx, &userpb.DeleteUserRequest{Id: id})
+	return err
+}
+
+func encodeProfile(firstName, lastName, middleName, birthDate, phone, department, position, avatarURL, bio, updatedAt string) (string, error) {
+	payload, err := json.Marshal(profileEnvelope{
+		FirstName:  firstName,
+		LastName:   lastName,
+		MiddleName: middleName,
+		BirthDate:  birthDate,
+		Phone:      phone,
+		Department: department,
+		Position:   position,
+		AvatarURL:  avatarURL,
+		Bio:        bio,
+		UpdatedAt:  updatedAt,
+	})
 	if err != nil {
-		c.log.Error("DeleteUser failed", "error", err)
-		return nil, err
+		return "", err
 	}
-	return resp, nil
+	return string(payload), nil
 }
 
-func (c *Client) Close() error {
-	return c.conn.Close()
+func fromProtoUser(user *userpb.User) (*core.UserProfile, error) {
+	if user == nil {
+		return nil, errors.New("user payload is empty")
+	}
+
+	var envelope profileEnvelope
+	if err := json.Unmarshal([]byte(user.GetName()), &envelope); err != nil {
+		return nil, fmt.Errorf("decode user profile: %w", err)
+	}
+
+	profile := &core.UserProfile{
+		ID:         user.GetId(),
+		FirstName:  envelope.FirstName,
+		LastName:   envelope.LastName,
+		MiddleName: envelope.MiddleName,
+		BirthDate:  envelope.BirthDate,
+		Phone:      envelope.Phone,
+		Department: envelope.Department,
+		Position:   envelope.Position,
+		AvatarURL:  envelope.AvatarURL,
+		Bio:        envelope.Bio,
+		UpdatedAt:  envelope.UpdatedAt,
+	}
+
+	if createdAt := timestampToRFC3339(user.GetCreatedAt()); createdAt != "" {
+		profile.CreatedAt = createdAt
+	}
+	return profile, nil
+}
+
+func timestampToRFC3339(ts *timestamp.Timestamp) string {
+	if ts == nil {
+		return ""
+	}
+	return time.Unix(ts.Seconds, int64(ts.Nanos)).UTC().Format(time.RFC3339)
 }

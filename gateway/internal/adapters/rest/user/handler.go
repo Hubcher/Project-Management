@@ -1,178 +1,187 @@
 package user
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
-	"io"
-	"log/slog"
 	"net/http"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
-	userpb "github.com/Hubcher/project-management/contracts/gen/proto/user"
-	"google.golang.org/protobuf/types/known/emptypb"
+	"github.com/Hubcher/project-management/gateway/internal/adapters/rest/httpx"
+	"github.com/Hubcher/project-management/gateway/internal/adapters/rest/middleware"
+	"github.com/Hubcher/project-management/gateway/internal/core"
 )
 
-type UserService interface {
-	CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.User, error)
-	GetUser(ctx context.Context, req *userpb.GetUserRequest) (*userpb.User, error)
-	ListUsers(ctx context.Context, req *userpb.ListUsersRequest) (*userpb.ListUsersResponse, error)
-	UpdateUser(ctx context.Context, req *userpb.UpdateUserRequest) (*userpb.User, error)
-	DeleteUser(ctx context.Context, req *userpb.DeleteUserRequest) (*emptypb.Empty, error)
-}
-
-func NewCreateUserHandler(log *slog.Logger, service UserService) http.HandlerFunc {
+// NewCreateUserHandler godoc
+// @Summary Create a managed user
+// @Description Creates a new user or administrator account. This endpoint is available only to administrators.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateUserRequest true "Managed user payload"
+// @Success 201 {object} ManagedUserResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 403 {object} httpx.ErrorResponse
+// @Failure 409 {object} httpx.ErrorResponse
+// @Failure 502 {object} httpx.ErrorResponse
+// @Router /api/users [post]
+func NewCreateUserHandler(identity *core.IdentityService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CreateUserRequest
-		if err := decodeJSON(r, &req); err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
+		if err := httpx.DecodeJSON(r, &req); err != nil {
+			httpx.WriteError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		user, err := service.CreateUser(r.Context(), toCreateUserPB(req))
+		result, err := identity.CreateManagedUser(r.Context(), toRegisterInput(req))
 		if err != nil {
-			writeGRPCError(log, w, err, "cannot create user")
+			httpx.WriteAnyError(w, err)
 			return
 		}
 
-		writeJSON(w, http.StatusCreated, toUserResponse(user))
+		httpx.WriteJSON(w, http.StatusCreated, toManagedUserResponse(result))
 	}
 }
 
-func NewGetUserByIdHandler(log *slog.Logger, service UserService) http.HandlerFunc {
+// NewGetUserByIDHandler godoc
+// @Summary Get user profile
+// @Description Returns a user profile by ID. Administrators can read any profile, regular users can read only their own profile.
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 403 {object} httpx.ErrorResponse
+// @Failure 404 {object} httpx.ErrorResponse
+// @Failure 502 {object} httpx.ErrorResponse
+// @Router /api/users/{id} [get]
+func NewGetUserByIDHandler(users core.UserDirectory) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := extractUserID(r)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "invalid user id")
+		id := r.PathValue("id")
+		if id == "" {
+			httpx.WriteError(w, http.StatusBadRequest, "invalid user id")
 			return
 		}
 
-		user, err := service.GetUser(r.Context(), &userpb.GetUserRequest{Id: id})
-		if err != nil {
-			writeGRPCError(log, w, err, "cannot get user")
+		authUser, ok := middleware.CurrentUser(r.Context())
+		if !ok {
+			httpx.WriteError(w, http.StatusUnauthorized, "missing auth context")
+			return
+		}
+		if authUser.Role != core.RoleAdmin && authUser.UserID != id {
+			httpx.WriteError(w, http.StatusForbidden, "access denied")
 			return
 		}
 
-		writeJSON(w, http.StatusOK, toUserResponse(user))
+		user, err := users.GetUser(r.Context(), id)
+		if err != nil {
+			httpx.WriteAnyError(w, err)
+			return
+		}
+
+		httpx.WriteJSON(w, http.StatusOK, toUserResponse(user))
 	}
 }
 
-func NewListUsersHandler(log *slog.Logger, service UserService) http.HandlerFunc {
+// NewListUsersHandler godoc
+// @Summary List user profiles
+// @Description Returns all user profiles. This endpoint is available only to administrators.
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} ListUsersResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 403 {object} httpx.ErrorResponse
+// @Failure 502 {object} httpx.ErrorResponse
+// @Router /api/users [get]
+func NewListUsersHandler(users core.UserDirectory) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		role := r.URL.Query().Get("role")
-
-		resp, err := service.ListUsers(r.Context(), &userpb.ListUsersRequest{Role: role})
+		profiles, err := users.ListUsers(r.Context())
 		if err != nil {
-			writeGRPCError(log, w, err, "cannot list users")
+			httpx.WriteAnyError(w, err)
 			return
 		}
 
-		writeJSON(w, http.StatusOK, toListUsersResponse(resp.GetUsers()))
+		httpx.WriteJSON(w, http.StatusOK, toListUsersResponse(profiles))
 	}
 }
 
-func NewUpdateUserHandler(log *slog.Logger, service UserService) http.HandlerFunc {
+// NewUpdateUserHandler godoc
+// @Summary Update user profile
+// @Description Updates a user profile. Administrators can update any profile, regular users can update only their own profile.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Param request body UpdateUserRequest true "Profile update payload"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 403 {object} httpx.ErrorResponse
+// @Failure 404 {object} httpx.ErrorResponse
+// @Failure 502 {object} httpx.ErrorResponse
+// @Router /api/users/{id} [put]
+func NewUpdateUserHandler(users core.UserDirectory) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := extractUserID(r)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "invalid user id")
+		id := r.PathValue("id")
+		if id == "" {
+			httpx.WriteError(w, http.StatusBadRequest, "invalid user id")
+			return
+		}
+
+		authUser, ok := middleware.CurrentUser(r.Context())
+		if !ok {
+			httpx.WriteError(w, http.StatusUnauthorized, "missing auth context")
+			return
+		}
+		if authUser.Role != core.RoleAdmin && authUser.UserID != id {
+			httpx.WriteError(w, http.StatusForbidden, "access denied")
 			return
 		}
 
 		var req UpdateUserRequest
-		if err = decodeJSON(r, &req); err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
+		if err := httpx.DecodeJSON(r, &req); err != nil {
+			httpx.WriteError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		user, err := service.UpdateUser(r.Context(), toUpdateUserPB(id, req))
+		user, err := users.UpdateUser(r.Context(), toUpdateInput(id, req))
 		if err != nil {
-			writeGRPCError(log, w, err, "cannot update user")
+			httpx.WriteAnyError(w, err)
 			return
 		}
-		writeJSON(w, http.StatusOK, toUserResponse(user))
+
+		httpx.WriteJSON(w, http.StatusOK, toUserResponse(user))
 	}
 }
 
-func NewDeleteUserHandler(log *slog.Logger, service UserService) http.HandlerFunc {
+// NewDeleteUserHandler godoc
+// @Summary Delete user
+// @Description Deletes a user in both auth-service and user-service. This endpoint is available only to administrators.
+// @Tags users
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Success 204 {string} string "No Content"
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 403 {object} httpx.ErrorResponse
+// @Failure 404 {object} httpx.ErrorResponse
+// @Failure 502 {object} httpx.ErrorResponse
+// @Router /api/users/{id} [delete]
+func NewDeleteUserHandler(identity *core.IdentityService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := extractUserID(r)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "invalid user id")
+		id := r.PathValue("id")
+		if id == "" {
+			httpx.WriteError(w, http.StatusBadRequest, "invalid user id")
 			return
 		}
-		_, err = service.DeleteUser(r.Context(), &userpb.DeleteUserRequest{Id: id})
-		if err != nil {
-			writeGRPCError(log, w, err, "cannot delete user")
+
+		if err := identity.DeleteUser(r.Context(), id); err != nil {
+			httpx.WriteAnyError(w, err)
 			return
 		}
 
 		w.WriteHeader(http.StatusNoContent)
 	}
-}
-
-func decodeJSON(r *http.Request, dst any) error {
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			return
-		}
-	}()
-
-	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
-
-	if err := dec.Decode(dst); err != nil {
-		if errors.Is(err, io.EOF) {
-			return errors.New("request body id empty")
-		}
-		return err
-	}
-
-	if err := dec.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-		return errors.New("request body must contain only one JSON object")
-	}
-
-	return nil
-}
-
-func writeJSON(w http.ResponseWriter, statuCode int, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statuCode)
-	_ = json.NewEncoder(w).Encode(data)
-}
-
-func writeError(w http.ResponseWriter, statusCode int, message string) {
-	writeJSON(w, statusCode, map[string]string{"error": message})
-}
-
-func writeGRPCError(log *slog.Logger, w http.ResponseWriter, err error, msg string) {
-	st, ok := status.FromError(err)
-	if !ok {
-		log.Error(msg, "error", err)
-		writeError(w, http.StatusInternalServerError, "internal server error")
-		return
-	}
-
-	log.Error(msg, "code", st.Code(), "message", st.Message())
-
-	switch st.Code() {
-	case codes.InvalidArgument:
-		writeError(w, http.StatusBadRequest, st.Message())
-	case codes.NotFound:
-		writeError(w, http.StatusNotFound, st.Message())
-	case codes.AlreadyExists:
-		writeError(w, http.StatusConflict, st.Message())
-	default:
-		writeError(w, http.StatusInternalServerError, st.Message())
-	}
-}
-
-func extractUserID(r *http.Request) (string, error) {
-	id := r.PathValue("id")
-	if id == "" {
-		return "", errors.New("empty id")
-	}
-	return id, nil
 }

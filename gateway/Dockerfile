@@ -21,5 +21,6 @@ RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 
 COPY --from=build /out/gateway /app/gateway
+COPY gateway/api /app/api
 
 ENTRYPOINT ["/app/gateway"]
