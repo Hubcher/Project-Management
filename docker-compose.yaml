@@ -1,5 +1,4 @@
 services:
-
   gateway:
     image: api:latest
     build:
@@ -13,12 +12,55 @@ services:
       - ./gateway/configs:/app/configs:ro
     environment:
       ADDRESS: ":8080"
-#      PROJECT_ADDRESS: "project-service:8080"
+      AUTH_ADDRESS: "auth-service:8080"
       USER_ADDRESS: "user-service:8080"
+      PROJECT_ADDRESS: "project-service:8080"
+      REPORT_ADDRESS: "report-service:8080"
       API_TIMEOUT: "5s"
     depends_on:
+      - auth-service
       - user-service
-#      - project-service
+      - project-service
+      - report-service
+
+  auth-service:
+    image: auth:latest
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "28081:8080"
+    volumes:
+      - ./auth-service/configs:/app/configs:ro
+    environment:
+      AUTH_ADDRESS: ":8080"
+      DB_ADDRESS: "postgres://postgres:password@auth-postgres:5432/authdb?sslmode=disable"
+      BOOTSTRAP_ADMIN_ENABLED: "true"
+      BOOTSTRAP_ADMIN_EMAIL: "admin@example.com"
+      BOOTSTRAP_ADMIN_PASSWORD: "Admin123!"
+    depends_on:
+      auth-postgres:
+        condition: service_healthy
+
+  project-service:
+    image: project:latest
+    build:
+      context: .
+      dockerfile: project-service/Dockerfile
+    container_name: project-service
+    restart: unless-stopped
+    ports:
+      - "28082:8080"
+    volumes:
+      - ./project-service/configs:/app/configs:ro
+    environment:
+      PROJECT_ADDRESS: ":8080"
+      DB_ADDRESS: "postgres://postgres:password@project-postgres:5432/projectdb?sslmode=disable"
+    depends_on:
+      project-postgres:
+        condition: service_healthy
 
   user-service:
     image: user:latest
@@ -38,60 +80,23 @@ services:
       user-postgres:
         condition: service_healthy
 
-  auth-service:
-    image: auth:latest
+  report-service:
+    image: report:latest
     build:
       context: .
-      dockerfile: auth-service/Dockerfile
-    container_name: auth-service
+      dockerfile: report-service/Dockerfile
+    container_name: report-service
     restart: unless-stopped
     ports:
-      - "28081:8080"
+      - "28084:8080"
     volumes:
-      - ./auth-service/configs:/app/configs:ro
+      - ./report-service/configs:/app/configs:ro
     environment:
-      USER_ADDRESS: ":8080"
-      DB_ADDRESS: "postgres://postgres:password@auth-postgres:5432/authdb?sslmode=disable"
+      REPORT_ADDRESS: ":8080"
+      DB_ADDRESS: "postgres://postgres:password@report-postgres:5432/reportdb?sslmode=disable"
     depends_on:
-      user-postgres:
+      report-postgres:
         condition: service_healthy
-
-#  project-service:
-#    image: project:latest
-#    build:
-#      context: .
-#      dockerfile: project-service/Dockerfile
-#    container_name: project-service
-#    restart: unless-stopped
-#    ports:
-#      - "28082:8080"
-#    volumes:
-#      - ./project-service/configs:/app/configs:ro
-#    environment:
-#      PROJECT_ADDRESS: ":8080"
-#      DB_ADDRESS: "postgres://postgres:password@project-postgres:5432/projectdb?sslmode=disable"
-#    depends_on:
-#      project-postgres:
-#        condition: service_healthy
-
-  user-postgres:
-    image: postgres:16-alpine
-    container_name: user-postgres
-    restart: unless-stopped
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: userdb
-    volumes:
-      - user-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d userdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
   project-postgres:
     image: postgres:16-alpine
@@ -112,20 +117,58 @@ services:
       retries: 5
       start_period: 20s
 
+  user-postgres:
+    image: postgres:16-alpine
+    container_name: user-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: userdb
+    volumes:
+      - user-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d userdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   auth-postgres:
     image: postgres:16-alpine
     container_name: auth-postgres
     restart: unless-stopped
     ports:
-      - "5434:5432"
+      - "5435:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: projectdb
+      POSTGRES_DB: authdb
     volumes:
       - auth-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d authdb" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d authdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  report-postgres:
+    image: postgres:16-alpine
+    container_name: report-postgres
+    restart: unless-stopped
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: reportdb
+    volumes:
+      - report-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d reportdb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -145,11 +188,13 @@ services:
       - pgadmin:/var/lib/pgadmin
     depends_on:
       - user-postgres
-      - project-postgres
       - auth-postgres
+      - project-postgres
+      - report-postgres
 
 volumes:
-  user-postgres-data:
   project-postgres-data:
+  user-postgres-data:
   auth-postgres-data:
+  report-postgres-data:
   pgadmin:

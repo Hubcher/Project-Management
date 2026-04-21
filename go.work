@@ -6,4 +6,5 @@ use (
 	./project-service
 	./user-service
 	./auth-service
+	./report-service
 )
