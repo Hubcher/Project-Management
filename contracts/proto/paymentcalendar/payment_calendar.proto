@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package paymentcalendar;
+
+option go_package = "github.com/Hubcher/project-management/contracts/gen/go/paymentcalendar;paymentcalendarpb";
+
+service PaymentCalendarService {
+  rpc Ping(Empty) returns (Empty) {}
+
+  rpc CreatePayment(CreatePaymentRequest) returns (Payment) {}
+  rpc GetPayment(GetPaymentRequest) returns (Payment) {}
+  rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse) {}
+  rpc UpdatePayment(UpdatePaymentRequest) returns (Payment) {}
+  rpc DeletePayment(DeletePaymentRequest) returns (Empty) {}
+  rpc MarkPaymentPaid(MarkPaymentPaidRequest) returns (Payment) {}
+  rpc GetProjectSummary(GetProjectSummaryRequest) returns (ProjectFinancialSummary) {}
+}
+
+message Empty {}
+
+message Payment {
+  string id = 1;
+  string project_id = 2;
+  string stage_id = 3;
+  string type = 4;
+  string status = 5;
+  string amount = 6;
+  string currency = 7;
+  string planned_date = 8;
+  string actual_date = 9;
+  string description = 10;
+  string created_by = 11;
+  string paid_by = 12;
+  bool is_overdue = 13;
+  string created_at = 14;
+  string updated_at = 15;
+}
+
+message CreatePaymentRequest {
+  string project_id = 1;
+  string stage_id = 2;
+  string type = 3;
+  string amount = 4;
+  string currency = 5;
+  string planned_date = 6;
+  string description = 7;
+  string created_by = 8;
+}
+
+message GetPaymentRequest {
+  string id = 1;
+}
+
+message ListPaymentsRequest {
+  string project_id = 1;
+  string stage_id = 2;
+  string type = 3;
+  string status = 4;
+  string date_from = 5;
+  string date_to = 6;
+  bool overdue_only = 7;
+}
+
+message ListPaymentsResponse {
+  repeated Payment payments = 1;
+}
+
+message UpdatePaymentRequest {
+  string id = 1;
+  string stage_id = 2;
+  string type = 3;
+  string status = 4;
+  string amount = 5;
+  string currency = 6;
+  string planned_date = 7;
+  string actual_date = 8;
+  string description = 9;
+  string paid_by = 10;
+}
+
+message DeletePaymentRequest {
+  string id = 1;
+}
+
+message MarkPaymentPaidRequest {
+  string id = 1;
+  string actual_date = 2;
+  string paid_by = 3;
+}
+
+message GetProjectSummaryRequest {
+  string project_id = 1;
+}
+
+message ProjectFinancialSummary {
+  string project_id = 1;
+  string planned_income = 2;
+  string planned_expense = 3;
+  string planned_balance = 4;
+  string paid_income = 5;
+  string paid_expense = 6;
+  string paid_balance = 7;
+  string overdue_income = 8;
+  string overdue_expense = 9;
+  int32 overdue_count = 10;
+}

@@ -12,7 +12,7 @@ import (
 
 // NewCreateProjectHandler godoc
 // @Summary Create project
-// @Description Creates a project. Administrators may assign any manager, regular users may create projects only for themselves.
+// @Description Creates a project. Accessible only to administrators and managers. Managers may create projects only for themselves.
 // @Tags projects
 // @Accept json
 // @Produce json
@@ -121,6 +121,11 @@ func NewListProjectsHandler(projects core.ProjectDirectory) http.HandlerFunc {
 			httpx.WriteAnyError(w, err)
 			return
 		}
+		list, err = filterVisibleProjects(r.Context(), projects, authUser, list)
+		if err != nil {
+			httpx.WriteAnyError(w, err)
+			return
+		}
 		httpx.WriteJSON(w, http.StatusOK, toListProjectsResponse(list))
 	}
 }
@@ -224,7 +229,7 @@ func loadReadableProject(ctx context.Context, projects core.ProjectDirectory, au
 	if err != nil {
 		return nil, err
 	}
-	if authUser.Role == core.RoleAdmin || project.ManagerID == authUser.UserID {
+	if authUser.Role == core.RoleAdmin || isProjectManager(authUser, project) {
 		return project, nil
 	}
 	members, err := projects.ListMembers(ctx, project.ID)
@@ -242,7 +247,7 @@ func loadWritableProject(ctx context.Context, projects core.ProjectDirectory, au
 	if err != nil {
 		return nil, err
 	}
-	if authUser.Role == core.RoleAdmin || project.ManagerID == authUser.UserID {
+	if authUser.Role == core.RoleAdmin || isProjectManager(authUser, project) {
 		return project, nil
 	}
 	return nil, core.NewStatusError(http.StatusForbidden, "access denied")
@@ -255,6 +260,9 @@ func resolveProjectManager(authUser core.AuthUser, requestedManagerID string) (s
 			return authUser.UserID, nil
 		}
 		return requestedManagerID, nil
+	}
+	if authUser.Role != core.RoleManager {
+		return "", core.NewStatusError(http.StatusForbidden, "access denied")
 	}
 	if requestedManagerID != "" && requestedManagerID != authUser.UserID {
 		return "", core.NewStatusError(http.StatusForbidden, "access denied")
@@ -278,6 +286,28 @@ func ensureKnownUser(ctx context.Context, users core.UserDirectory, userID strin
 	return err
 }
 
+func filterVisibleProjects(ctx context.Context, projects core.ProjectDirectory, authUser core.AuthUser, list []core.Project) ([]core.Project, error) {
+	if authUser.Role == core.RoleAdmin {
+		return list, nil
+	}
+	visible := make([]core.Project, 0, len(list))
+	for i := range list {
+		project := list[i]
+		if isProjectManager(authUser, &project) {
+			visible = append(visible, project)
+			continue
+		}
+		members, err := projects.ListMembers(ctx, project.ID)
+		if err != nil {
+			return nil, err
+		}
+		if isActiveProjectMember(members, authUser.UserID) {
+			visible = append(visible, project)
+		}
+	}
+	return visible, nil
+}
+
 func isActiveProjectMember(members []core.ProjectMember, userID string) bool {
 	for _, member := range members {
 		if member.UserID == userID && member.IsActive {
@@ -285,4 +315,8 @@ func isActiveProjectMember(members []core.ProjectMember, userID string) bool {
 		}
 	}
 	return false
+}
+
+func isProjectManager(authUser core.AuthUser, project *core.Project) bool {
+	return authUser.Role == core.RoleManager && project.ManagerID == authUser.UserID
 }

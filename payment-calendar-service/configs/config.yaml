@@ -1,0 +1,4 @@
+log_level: DEBUG
+address: :8080
+db_address: postgres://postgres:password@payment-calendar-postgres:5432/paymentcalendardb?sslmode=disable
+project_address: project-service:8080

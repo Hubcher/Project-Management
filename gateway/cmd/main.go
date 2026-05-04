@@ -24,11 +24,15 @@ import (
 	"time"
 
 	authgrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/auth"
+	exportgrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/export"
+	paymentcalendargrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/paymentcalendar"
 	projectgrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/project"
 	reportgrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/report"
 	usergrpc "github.com/Hubcher/project-management/gateway/internal/adapters/grpc/user"
 	authrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/auth"
+	exportrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/export"
 	"github.com/Hubcher/project-management/gateway/internal/adapters/rest/middleware"
+	paymentcalendarrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/paymentcalendar"
 	"github.com/Hubcher/project-management/gateway/internal/adapters/rest/ping"
 	projectrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/project"
 	reportrest "github.com/Hubcher/project-management/gateway/internal/adapters/rest/report"
@@ -103,6 +107,30 @@ func run() error {
 		}
 	}()
 
+	// Payment calendar client
+	paymentCalendarClient, err := paymentcalendargrpc.NewClient(cfg.PaymentCalendarAddress)
+	if err != nil {
+		log.Error("cannot init PaymentCalendarService adapter", "error", err)
+		return err
+	}
+	defer func() {
+		if cerr := paymentCalendarClient.Close(); cerr != nil {
+			log.Error("cannot close PaymentCalendarService adapter", "error", cerr)
+		}
+	}()
+
+	// Export client
+	exportClient, err := exportgrpc.NewClient(cfg.ExportAddress)
+	if err != nil {
+		log.Error("cannot init ExportService adapter", "error", err)
+		return err
+	}
+	defer func() {
+		if cerr := exportClient.Close(); cerr != nil {
+			log.Error("cannot close ExportService adapter", "error", cerr)
+		}
+	}()
+
 	identity := core.NewIdentityService(authClient, userClient)
 	authMW := middleware.NewAuthMiddleware(authClient)
 	mux := http.NewServeMux()
@@ -124,7 +152,7 @@ func run() error {
 	mux.Handle("DELETE /api/users/{id}", middleware.Chain(userrest.NewDeleteUserHandler(identity), authMW.Auth, authMW.RequireRoles(core.RoleAdmin)))
 
 	// project endpoints
-	mux.Handle("POST /api/projects", middleware.Chain(projectrest.NewCreateProjectHandler(projectClient, userClient), authMW.Auth))
+	mux.Handle("POST /api/projects", middleware.Chain(projectrest.NewCreateProjectHandler(projectClient, userClient), authMW.Auth, authMW.RequireRoles(core.RoleAdmin, core.RoleManager)))
 	mux.Handle("GET /api/projects/{id}", middleware.Chain(projectrest.NewGetProjectHandler(projectClient), authMW.Auth))
 	mux.Handle("GET /api/projects", middleware.Chain(projectrest.NewListProjectsHandler(projectClient), authMW.Auth))
 	mux.Handle("PUT /api/projects/{id}", middleware.Chain(projectrest.NewUpdateProjectHandler(projectClient, userClient), authMW.Auth))
@@ -172,13 +200,27 @@ func run() error {
 	mux.Handle("PUT /api/report-comments/{id}", middleware.Chain(reportrest.NewUpdateCommentHandler(reportClient, projectClient), authMW.Auth))
 	mux.Handle("DELETE /api/report-comments/{id}", middleware.Chain(reportrest.NewDeleteCommentHandler(reportClient, projectClient), authMW.Auth))
 
+	// payment calendar endpoints
+	mux.Handle("POST /api/projects/{projectId}/payments", middleware.Chain(paymentcalendarrest.NewCreatePaymentHandler(paymentCalendarClient, projectClient), authMW.Auth))
+	mux.Handle("GET /api/projects/{projectId}/payments", middleware.Chain(paymentcalendarrest.NewListPaymentsHandler(paymentCalendarClient, projectClient), authMW.Auth))
+	mux.Handle("GET /api/projects/{projectId}/payment-summary", middleware.Chain(paymentcalendarrest.NewProjectSummaryHandler(paymentCalendarClient, projectClient), authMW.Auth))
+	mux.Handle("GET /api/payments/{id}", middleware.Chain(paymentcalendarrest.NewGetPaymentHandler(paymentCalendarClient, projectClient), authMW.Auth))
+	mux.Handle("PUT /api/payments/{id}", middleware.Chain(paymentcalendarrest.NewUpdatePaymentHandler(paymentCalendarClient, projectClient), authMW.Auth))
+	mux.Handle("DELETE /api/payments/{id}", middleware.Chain(paymentcalendarrest.NewDeletePaymentHandler(paymentCalendarClient, projectClient), authMW.Auth))
+	mux.Handle("POST /api/payments/{id}/pay", middleware.Chain(paymentcalendarrest.NewMarkPaymentPaidHandler(paymentCalendarClient, projectClient), authMW.Auth))
+
+	// export endpoints
+	mux.Handle("GET /api/exports/{reportType}", middleware.Chain(exportrest.NewBuildExportHandler(exportClient), authMW.Auth))
+
 	// system ping endpoint
 	mux.Handle("GET /api/ping", ping.NewPingHandler(log,
 		map[string]core.Pinger{
-			"auth":    authClient,
-			"user":    userClient,
-			"project": projectClient,
-			"report":  reportClient,
+			"auth":             authClient,
+			"user":             userClient,
+			"project":          projectClient,
+			"report":           reportClient,
+			"payment_calendar": paymentCalendarClient,
+			"export":           exportClient,
 		}))
 
 	server := &http.Server{Addr: cfg.HTTPConfig.Address, ReadTimeout: cfg.HTTPConfig.Timeout, Handler: mux}

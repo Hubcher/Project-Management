@@ -70,3 +70,19 @@ type ReportDirectory interface {
 	UpdateComment(ctx context.Context, input UpdateDailyReportCommentInput) (*DailyReportComment, error)
 	DeleteComment(ctx context.Context, id string) error
 }
+
+type PaymentCalendarDirectory interface {
+	Pinger
+	CreatePayment(ctx context.Context, input CreatePaymentInput) (*Payment, error)
+	GetPayment(ctx context.Context, id string) (*Payment, error)
+	ListPayments(ctx context.Context, input ListPaymentsInput) ([]Payment, error)
+	UpdatePayment(ctx context.Context, input UpdatePaymentInput) (*Payment, error)
+	DeletePayment(ctx context.Context, id string) error
+	MarkPaymentPaid(ctx context.Context, input MarkPaymentPaidInput) (*Payment, error)
+	GetProjectSummary(ctx context.Context, projectID string) (*ProjectFinancialSummary, error)
+}
+
+type ExportDirectory interface {
+	Pinger
+	BuildExport(ctx context.Context, input BuildExportInput) (*ExportedFile, error)
+}

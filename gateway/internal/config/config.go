@@ -13,12 +13,14 @@ type HTTPConfig struct {
 }
 
 type Config struct {
-	LogLevel       string     `yaml:"log_level" env:"LOG_LEVEL" env-default:"DEBUG"`
-	HTTPConfig     HTTPConfig `yaml:"api-server"`
-	AuthAddress    string     `yaml:"auth_address" env:"AUTH_ADDRESS" env-default:"auth-service:8080"`
-	UserAddress    string     `yaml:"user_address" env:"USER_ADDRESS" env-default:"user-service:8080"`
-	ProjectAddress string     `yaml:"project_address" env:"PROJECT_ADDRESS" env-default:"project-service:8080"`
-	ReportAddress  string     `yaml:"report_address" env:"REPORT_ADDRESS" env-default:"report-service:8080"`
+	LogLevel               string     `yaml:"log_level" env:"LOG_LEVEL" env-default:"DEBUG"`
+	HTTPConfig             HTTPConfig `yaml:"api-server"`
+	AuthAddress            string     `yaml:"auth_address" env:"AUTH_ADDRESS" env-default:"auth-service:8080"`
+	UserAddress            string     `yaml:"user_address" env:"USER_ADDRESS" env-default:"user-service:8080"`
+	ProjectAddress         string     `yaml:"project_address" env:"PROJECT_ADDRESS" env-default:"project-service:8080"`
+	ReportAddress          string     `yaml:"report_address" env:"REPORT_ADDRESS" env-default:"report-service:8080"`
+	PaymentCalendarAddress string     `yaml:"payment_calendar_address" env:"PAYMENT_CALENDAR_ADDRESS" env-default:"payment-calendar-service:8080"`
+	ExportAddress          string     `yaml:"export_address" env:"EXPORT_ADDRESS" env-default:"export-service:8080"`
 }
 
 func MustLoad(configPath string) *Config {

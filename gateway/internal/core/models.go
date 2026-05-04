@@ -3,8 +3,9 @@ package core
 type Role string
 
 const (
-	RoleUser  Role = "user"
-	RoleAdmin Role = "admin"
+	RoleUser    Role = "user"
+	RoleManager Role = "manager"
+	RoleAdmin   Role = "admin"
 )
 
 type AuthUser struct {
@@ -115,6 +116,37 @@ type DailyReportComment struct {
 	AuthorUserID string `json:"author_user_id"`
 	Comment      string `json:"comment"`
 	CreatedAt    string `json:"created_at,omitempty"`
+}
+
+type Payment struct {
+	ID          string `json:"id"`
+	ProjectID   string `json:"project_id"`
+	StageID     string `json:"stage_id,omitempty"`
+	Type        string `json:"type"`
+	Status      string `json:"status"`
+	Amount      string `json:"amount"`
+	Currency    string `json:"currency"`
+	PlannedDate string `json:"planned_date"`
+	ActualDate  string `json:"actual_date,omitempty"`
+	Description string `json:"description"`
+	CreatedBy   string `json:"created_by,omitempty"`
+	PaidBy      string `json:"paid_by,omitempty"`
+	IsOverdue   bool   `json:"is_overdue"`
+	CreatedAt   string `json:"created_at,omitempty"`
+	UpdatedAt   string `json:"updated_at,omitempty"`
+}
+
+type ProjectFinancialSummary struct {
+	ProjectID      string `json:"project_id"`
+	PlannedIncome  string `json:"planned_income"`
+	PlannedExpense string `json:"planned_expense"`
+	PlannedBalance string `json:"planned_balance"`
+	PaidIncome     string `json:"paid_income"`
+	PaidExpense    string `json:"paid_expense"`
+	PaidBalance    string `json:"paid_balance"`
+	OverdueIncome  string `json:"overdue_income"`
+	OverdueExpense string `json:"overdue_expense"`
+	OverdueCount   int32  `json:"overdue_count"`
 }
 
 type RegisterInput struct {
@@ -297,6 +329,66 @@ type CreateDailyReportCommentInput struct {
 type UpdateDailyReportCommentInput struct {
 	ID      string `json:"id"`
 	Comment string `json:"comment"`
+}
+
+type CreatePaymentInput struct {
+	ProjectID   string `json:"project_id"`
+	StageID     string `json:"stage_id,omitempty"`
+	Type        string `json:"type"`
+	Amount      string `json:"amount"`
+	Currency    string `json:"currency,omitempty"`
+	PlannedDate string `json:"planned_date"`
+	Description string `json:"description"`
+	CreatedBy   string `json:"created_by,omitempty"`
+}
+
+type ListPaymentsInput struct {
+	ProjectID   string `json:"project_id"`
+	StageID     string `json:"stage_id,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Status      string `json:"status,omitempty"`
+	DateFrom    string `json:"date_from,omitempty"`
+	DateTo      string `json:"date_to,omitempty"`
+	OverdueOnly bool   `json:"overdue_only,omitempty"`
+}
+
+type UpdatePaymentInput struct {
+	ID          string `json:"id"`
+	StageID     string `json:"stage_id,omitempty"`
+	Type        string `json:"type"`
+	Status      string `json:"status"`
+	Amount      string `json:"amount"`
+	Currency    string `json:"currency"`
+	PlannedDate string `json:"planned_date"`
+	ActualDate  string `json:"actual_date,omitempty"`
+	Description string `json:"description"`
+	PaidBy      string `json:"paid_by,omitempty"`
+}
+
+type MarkPaymentPaidInput struct {
+	ID         string `json:"id"`
+	ActualDate string `json:"actual_date,omitempty"`
+	PaidBy     string `json:"paid_by,omitempty"`
+}
+
+type BuildExportInput struct {
+	ReportType         string `json:"report_type"`
+	Format             string `json:"format"`
+	ProjectID          string `json:"project_id,omitempty"`
+	DateFrom           string `json:"date_from,omitempty"`
+	DateTo             string `json:"date_to,omitempty"`
+	GroupBy            string `json:"group_by,omitempty"`
+	PaymentType        string `json:"payment_type,omitempty"`
+	PaymentStatus      string `json:"payment_status,omitempty"`
+	OverdueOnly        bool   `json:"overdue_only,omitempty"`
+	RequesterUserID    string `json:"requester_user_id,omitempty"`
+	IncludeAllProjects bool   `json:"include_all_projects,omitempty"`
+}
+
+type ExportedFile struct {
+	FileName    string
+	ContentType string
+	Data        []byte
 }
 
 type RegisterResult struct {

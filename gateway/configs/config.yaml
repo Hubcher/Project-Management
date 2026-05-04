@@ -3,6 +3,8 @@ auth_address: auth-service:8080
 user_address: user-service:8080
 project_address: project-service:8080
 report_address: report-service:8080
+payment_calendar_address: payment-calendar-service:8080
+export_address: export-service:8080
 api-server:
   address: :8080
   timeout: 5s

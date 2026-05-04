@@ -90,6 +90,108 @@ definitions:
         example: access denied
         type: string
     type: object
+  paymentcalendar.CreatePaymentRequest:
+    properties:
+      amount:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      planned_date:
+        type: string
+      stage_id:
+        type: string
+      type:
+        type: string
+    type: object
+  paymentcalendar.ListPaymentsResponse:
+    properties:
+      payments:
+        items:
+          $ref: '#/definitions/paymentcalendar.PaymentResponse'
+        type: array
+    type: object
+  paymentcalendar.MarkPaymentPaidRequest:
+    properties:
+      actual_date:
+        type: string
+    type: object
+  paymentcalendar.PaymentResponse:
+    properties:
+      actual_date:
+        type: string
+      amount:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_overdue:
+        type: boolean
+      paid_by:
+        type: string
+      planned_date:
+        type: string
+      project_id:
+        type: string
+      stage_id:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  paymentcalendar.ProjectFinancialSummaryResponse:
+    properties:
+      overdue_count:
+        type: integer
+      overdue_expense:
+        type: string
+      overdue_income:
+        type: string
+      paid_balance:
+        type: string
+      paid_expense:
+        type: string
+      paid_income:
+        type: string
+      planned_balance:
+        type: string
+      planned_expense:
+        type: string
+      planned_income:
+        type: string
+      project_id:
+        type: string
+    type: object
+  paymentcalendar.UpdatePaymentRequest:
+    properties:
+      actual_date:
+        type: string
+      amount:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      planned_date:
+        type: string
+      stage_id:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
   ping.PingResponse:
     properties:
       replies:
@@ -690,6 +792,248 @@ paths:
       summary: Register a user
       tags:
       - auth
+  /api/exports/{reportType}:
+    get:
+      description: Builds CSV, XLSX or PDF management reports from project and payment
+        calendar data. Regular users receive only their projects; administrators may
+        export the whole portfolio.
+      parameters:
+      - description: 'Report type: summary, projects, payments, cashflow, profit or
+          risks'
+        in: path
+        name: reportType
+        required: true
+        type: string
+      - description: 'File format: csv, xlsx or pdf'
+        in: query
+        name: format
+        type: string
+      - description: Project ID filter
+        in: query
+        name: project_id
+        type: string
+      - description: Lower payment planned date bound in YYYY-MM-DD format
+        in: query
+        name: date_from
+        type: string
+      - description: Upper payment planned date bound in YYYY-MM-DD format
+        in: query
+        name: date_to
+        type: string
+      - description: 'Grouping: day, week or month'
+        in: query
+        name: group_by
+        type: string
+      - description: 'Payment type: income or expense'
+        in: query
+        name: payment_type
+        type: string
+      - description: 'Payment status: planned, paid or cancelled'
+        in: query
+        name: payment_status
+        type: string
+      - description: Return only computed overdue payments
+        in: query
+        name: overdue_only
+        type: boolean
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Build management export
+      tags:
+      - exports
+  /api/payments/{id}:
+    delete:
+      description: Deletes a payment. Accessible to administrators and the project
+        manager.
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete project payment
+      tags:
+      - payment-calendar
+    get:
+      description: Returns a payment by ID. Accessible to administrators, the project
+        manager, and active project members.
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/paymentcalendar.PaymentResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get project payment
+      tags:
+      - payment-calendar
+    put:
+      consumes:
+      - application/json
+      description: Updates a payment. Accessible to administrators and the project
+        manager.
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payment update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/paymentcalendar.UpdatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/paymentcalendar.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update project payment
+      tags:
+      - payment-calendar
+  /api/payments/{id}/pay:
+    post:
+      consumes:
+      - application/json
+      description: Marks a planned payment as paid and stores the actual payment date.
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Actual payment date payload
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/paymentcalendar.MarkPaymentPaidRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/paymentcalendar.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark payment paid
+      tags:
+      - payment-calendar
   /api/ping:
     get:
       description: Calls downstream services and returns their availability status
@@ -1118,8 +1462,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a project. Administrators may assign any manager, regular
-        users may create projects only for themselves.
+      description: Creates a project. Accessible only to administrators and managers.
+        Managers may create projects only for themselves.
       parameters:
       - description: Project payload
         in: body
@@ -1471,6 +1815,157 @@ paths:
       summary: Add project member
       tags:
       - project-members
+  /api/projects/{projectId}/payment-summary:
+    get:
+      description: Returns planned, paid and computed overdue totals for a project.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/paymentcalendar.ProjectFinancialSummaryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get project financial summary
+      tags:
+      - payment-calendar
+  /api/projects/{projectId}/payments:
+    get:
+      description: Returns project payment calendar entries visible to the caller.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Project stage ID filter
+        in: query
+        name: stage_id
+        type: string
+      - description: 'Payment type: income or expense'
+        in: query
+        name: type
+        type: string
+      - description: 'Stored payment status: planned, paid or cancelled'
+        in: query
+        name: status
+        type: string
+      - description: Lower planned date bound in YYYY-MM-DD format
+        in: query
+        name: date_from
+        type: string
+      - description: Upper planned date bound in YYYY-MM-DD format
+        in: query
+        name: date_to
+        type: string
+      - description: Return only computed overdue payments
+        in: query
+        name: overdue_only
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/paymentcalendar.ListPaymentsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List project payments
+      tags:
+      - payment-calendar
+    post:
+      consumes:
+      - application/json
+      description: Creates a planned income or expense for a project. Accessible to
+        administrators and the project manager.
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Payment payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/paymentcalendar.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/paymentcalendar.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/httpx.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create project payment
+      tags:
+      - payment-calendar
   /api/projects/{projectId}/stages:
     get:
       description: Returns all stages of a project. Accessible to administrators,
@@ -2248,8 +2743,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a new user or administrator account. This endpoint is available
-        only to administrators.
+      description: Creates a new user, manager or administrator account. This endpoint
+        is available only to administrators.
       parameters:
       - description: Managed user payload
         in: body

@@ -130,14 +130,17 @@ func NewListReportsHandler(reports ReportHandlerService, projects core.ProjectDi
 
 		var (
 			list []core.DailyReport
-			err error
+			err  error
 		)
 
 		switch {
 		case authUser.Role == core.RoleAdmin:
 			list, err = reports.ListReports(r.Context(), filter)
-		case scope == reviewScope:
+		case scope == reviewScope && authUser.Role == core.RoleManager:
 			list, err = listReviewableReports(r.Context(), reports, projects, authUser, filter)
+		case scope == reviewScope:
+			httpx.WriteError(w, http.StatusForbidden, "access denied")
+			return
 		case scope == "self":
 			if filter.UserID != "" && filter.UserID != authUser.UserID {
 				httpx.WriteError(w, http.StatusForbidden, "access denied")
@@ -378,7 +381,7 @@ func isReportReviewer(ctx context.Context, reports ReportHandlerService, project
 		if getErr != nil {
 			return false, getErr
 		}
-		if project.ManagerID == authUser.UserID {
+		if authUser.Role == core.RoleManager && project.ManagerID == authUser.UserID {
 			return true, nil
 		}
 	}

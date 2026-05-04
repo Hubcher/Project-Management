@@ -10,7 +10,7 @@ import (
 
 // NewCreateUserHandler godoc
 // @Summary Create a managed user
-// @Description Creates a new user or administrator account. This endpoint is available only to administrators.
+// @Description Creates a new user, manager or administrator account. This endpoint is available only to administrators.
 // @Tags users
 // @Accept json
 // @Produce json
