@@ -7,4 +7,6 @@ use (
 	./user-service
 	./auth-service
 	./report-service
+	./payment-calendar-service
+	./export-service
 )

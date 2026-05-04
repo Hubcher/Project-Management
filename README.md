@@ -39,7 +39,7 @@
 
 - регистрация и логин пользователей
 - выдача и проверка JWT
-- разграничение прав `user` / `admin`
+- разграничение прав `user` / `manager` / `admin`
 - хранение профилей пользователей отдельно от учетных данных
 - управление проектами, этапами, участниками и событиями проекта
 - фиксация ежедневной работы сотрудников по проектам и этапам
@@ -95,7 +95,7 @@ project-management/
 - структура конфигурации задается в `configs/config.yaml`
 - `docker-compose.yaml` переопределяет адреса сервисов, строки подключения к БД и bootstrap admin через env
 
-То есть отдельный `.env.example` сейчас не обязателен. Если позже захочешь упростить перенос между окружениями, можно добавить `.env` только как слой значений для Compose, но сами сервисы уже умеют работать без него.
+То есть отдельный `.env.example` сейчас не обязателен. Если позже будет желание упростить перенос между окружениями, можно добавить `.env` только как слой значений для Compose, но сами сервисы уже умеют работать без него.
 
 ## Порты по умолчанию в Docker Compose
 
@@ -187,5 +187,5 @@ docker compose up --build -d
 - UserService: [user-service/README.md](user-service/README.md)
 - ProjectService: [project-service/README.md](project-service/README.md)
 - ReportService: [report-service/README.md](report-service/README.md)
-- PaymentCalendarService: TODO
-- ExportService: TODO
+- PaymentCalendarService: [payment-calendar-service/README.md](payment-calendar-service/README.md)
+- ExportService: [export-service/README.md](export-service/README.md)

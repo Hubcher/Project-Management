@@ -16,12 +16,16 @@ services:
       USER_ADDRESS: "user-service:8080"
       PROJECT_ADDRESS: "project-service:8080"
       REPORT_ADDRESS: "report-service:8080"
+      PAYMENT_CALENDAR_ADDRESS: "payment-calendar-service:8080"
+      EXPORT_ADDRESS: "export-service:8080"
       API_TIMEOUT: "5s"
     depends_on:
       - auth-service
       - user-service
       - project-service
       - report-service
+      - payment-calendar-service
+      - export-service
 
   auth-service:
     image: auth:latest
@@ -97,6 +101,48 @@ services:
     depends_on:
       report-postgres:
         condition: service_healthy
+
+  payment-calendar-service:
+    image: payment-calendar:latest
+    build:
+      context: .
+      dockerfile: payment-calendar-service/Dockerfile
+    container_name: payment-calendar-service
+    restart: unless-stopped
+    ports:
+      - "28085:8080"
+    volumes:
+      - ./payment-calendar-service/configs:/app/configs:ro
+    environment:
+      PAYMENT_CALENDAR_ADDRESS: ":8080"
+      DB_ADDRESS: "postgres://postgres:password@payment-calendar-postgres:5432/paymentcalendardb?sslmode=disable"
+      PROJECT_ADDRESS: "project-service:8080"
+    depends_on:
+      payment-calendar-postgres:
+        condition: service_healthy
+      project-service:
+        condition: service_started
+
+  export-service:
+    image: export:latest
+    build:
+      context: .
+      dockerfile: export-service/Dockerfile
+    container_name: export-service
+    restart: unless-stopped
+    ports:
+      - "28086:8080"
+    volumes:
+      - ./export-service/configs:/app/configs:ro
+    environment:
+      EXPORT_ADDRESS: ":8080"
+      PROJECT_ADDRESS: "project-service:8080"
+      PAYMENT_CALENDAR_ADDRESS: "payment-calendar-service:8080"
+    depends_on:
+      project-service:
+        condition: service_started
+      payment-calendar-service:
+        condition: service_started
 
   project-postgres:
     image: postgres:16-alpine
@@ -174,6 +220,37 @@ services:
       retries: 5
       start_period: 20s
 
+  payment-calendar-postgres:
+    image: postgres:16-alpine
+    container_name: payment-calendar-postgres
+    restart: unless-stopped
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: paymentcalendardb
+    volumes:
+      - payment-calendar-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paymentcalendardb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  tests:
+    image: tests:latest
+    build: tests
+    container_name: tests
+    restart: "no"
+    profiles:
+      - tests
+    environment:
+      API_BASE_URL: "http://gateway:8080"
+    depends_on:
+      - gateway
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4
@@ -191,10 +268,12 @@ services:
       - auth-postgres
       - project-postgres
       - report-postgres
+      - payment-calendar-postgres
 
 volumes:
   project-postgres-data:
   user-postgres-data:
   auth-postgres-data:
   report-postgres-data:
+  payment-calendar-postgres-data:
   pgadmin:

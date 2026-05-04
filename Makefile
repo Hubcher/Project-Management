@@ -2,7 +2,7 @@ container_runtime := $(shell which podman || which docker)
 
 $(info using ${container_runtime})
 
-.PHONY: up down swagger swagger-full clean lint proto tools
+.PHONY: up down swagger swagger-full clean run-tests test lint proto tools
 
 up: down
 	${container_runtime} compose up --build -d
@@ -18,6 +18,17 @@ swagger-full:
 
 clean:
 	${container_runtime} compose down -v
+
+run-tests:
+	${container_runtime} compose run --build --rm tests
+
+test:
+	make clean
+	make up
+	@echo wait cluster to start && sleep 15
+	make run-tests
+	make clean
+	@echo "test finished"
 
 lint:
 	make -C contracts lint
